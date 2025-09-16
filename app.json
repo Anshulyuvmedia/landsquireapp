@@ -1,0 +1,98 @@
+{
+  "expo": {
+    "name": "Land Squire",
+    "slug": "landsquire",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/applogo.png",
+    "scheme": "landsquire",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.land.squire"
+    },
+    "android": {
+      "package": "com.land.squire",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/applogo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "runtimeVersion": "1.0.0",
+      "edgeToEdgeEnabled": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyA_KLtDmYZB0Qy_b0f6LHJSlDV2wYYPf8s"
+        }
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/applogo.png",
+      "config": {
+        "react-native-maps": {
+          "web": "google"
+        }
+      }
+    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "plugins": [
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/landsquire.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#ffffff",
+          "enableFullScreenImage_legacy": true
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Rubik-Bold.ttf",
+            "./assets/fonts/Rubik-ExtraBold.ttf",
+            "./assets/fonts/Rubik-Medium.ttf",
+            "./assets/fonts/Rubik-Light.ttf",
+            "./assets/fonts/Rubik-Regular.ttf",
+            "./assets/fonts/Rubik-SemiBold.ttf",
+            "./assets/fonts/NotoSerifDevanagari-Bold.ttf",
+            "./assets/fonts/NotoSerifDevanagari-ExtraBold.ttf",
+            "./assets/fonts/NotoSerifDevanagari-Light.ttf",
+            "./assets/fonts/NotoSerifDevanagari-Medium.ttf",
+            "./assets/fonts/NotoSerifDevanagari-Regular.ttf",
+            "./assets/fonts/NotoSerifDevanagari-SemiBold.ttf"
+          ]
+        }
+      ],
+      "expo-video"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "GOOGLE_MAPS_API_KEY": "AIzaSyA_KLtDmYZB0Qy_b0f6LHJSlDV2wYYPf8s",
+      "ANDROID_CLIENT_ID": "429638913170-5mhhuo7d8jcb3puni9ggephkqi601kab.apps.googleusercontent.com",
+      "WEB_CLIENT_ID": "429638913170-oeb8ah87ve9hqgilbpnnvghburkd9f8h.apps.googleusercontent.com",
+      "IOS_CLIENT_ID": "429638913170-m3o3jo3tpf1gst47v76cmd0k7tq2qmp9.apps.googleusercontent.com",
+      "eas": {
+        "projectId": "bcf8f9f4-049c-486c-8d90-b3e3cc8b6cf1"
+      }
+    }
+  }
+}
