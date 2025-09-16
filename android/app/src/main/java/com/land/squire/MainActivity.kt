@@ -1,4 +1,4 @@
-package com.anshulyuvmedia.landsquire
+package com.land.squire
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

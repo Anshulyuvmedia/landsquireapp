@@ -1,4 +1,4 @@
-package com.anshulyuvmedia.landsquire
+package com.land.squire
 
 import android.app.Application
 import android.content.res.Configuration

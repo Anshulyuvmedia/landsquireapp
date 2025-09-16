@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anshulyuvmedia.landsquire'
+    namespace 'com.land.squire'
     defaultConfig {
-        applicationId 'com.anshulyuvmedia.landsquire'
+        applicationId 'com.land.squire'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
