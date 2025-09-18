@@ -1,6 +1,6 @@
-import { View, TouchableOpacity, ScrollView, TextInput, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity, ScrollView, TextInput, Text, StyleSheet, ActivityIndicator, Dimensions } from "react-native";
 import { useLocalSearchParams, router, usePathname } from "expo-router";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import RBSheet from "react-native-raw-bottom-sheet";
 import RNPickerSelect from "react-native-picker-select";
 import axios from "axios";
@@ -25,8 +25,9 @@ const Search = () => {
     const [sqftfrom, setsqftfrom] = useState(params.sqftfrom || "");
     const [sqftto, setsqftto] = useState(params.sqftto || "");
     const [loading, setLoading] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true);
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         setLoading(true);
         try {
             const response = await axios.get(`https://landsquire.in/api/get-categories`);
@@ -40,9 +41,9 @@ const Search = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchCityListing = async () => {
+    const fetchCityListing = useCallback(async () => {
         setLoading(true);
         try {
             const response = await axios.get(`https://landsquire.in/api/listingscitywise`);
@@ -56,12 +57,13 @@ const Search = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchCategories();
         fetchCityListing();
-    }, []);
+        setInitialLoad(false);
+    }, [fetchCategories, fetchCityListing]);
 
     const memoizedParams = useMemo(
         () => ({
@@ -77,30 +79,30 @@ const Search = () => {
     );
 
     useEffect(() => {
-        if (memoizedParams.city !== selectedCity) {
-            setSelectedCity(memoizedParams.city);
+        if (!initialLoad) {
+            if (memoizedParams.city !== selectedCity) {
+                setSelectedCity(memoizedParams.city);
+            }
+            if (JSON.stringify(memoizedParams.propertyType) !== JSON.stringify(selectedPropertyTypes)) {
+                setSelectedPropertyTypes(memoizedParams.propertyType);
+            }
+            if (memoizedParams.propertyFor !== selectedPropertyFor) {
+                setSelectedPropertyFor(memoizedParams.propertyFor);
+            }
+            if (memoizedParams.minPrice !== minPrice) {
+                setMinPrice(memoizedParams.minPrice);
+            }
+            if (memoizedParams.maxPrice !== maxPrice) {
+                setMaxPrice(memoizedParams.maxPrice);
+            }
+            if (memoizedParams.sqftfrom !== sqftfrom) {
+                setsqftfrom(memoizedParams.sqftfrom);
+            }
+            if (memoizedParams.sqftto !== sqftto) {
+                setsqftto(memoizedParams.sqftto);
+            }
         }
-        if (
-            JSON.stringify(memoizedParams.propertyType) !== JSON.stringify(selectedPropertyTypes)
-        ) {
-            setSelectedPropertyTypes(memoizedParams.propertyType);
-        }
-        if (memoizedParams.propertyFor !== selectedPropertyFor) {
-            setSelectedPropertyFor(memoizedParams.propertyFor);
-        }
-        if (memoizedParams.minPrice !== minPrice) {
-            setMinPrice(memoizedParams.minPrice);
-        }
-        if (memoizedParams.maxPrice !== maxPrice) {
-            setMaxPrice(memoizedParams.maxPrice);
-        }
-        if (memoizedParams.sqftfrom !== sqftfrom) {
-            setsqftfrom(memoizedParams.sqftfrom);
-        }
-        if (memoizedParams.sqftto !== sqftto) {
-            setsqftto(memoizedParams.sqftto);
-        }
-    }, [memoizedParams]);
+    }, [memoizedParams, initialLoad]);
 
     const handlePropertyTypeToggle = (propertyType) => {
         if (selectedPropertyTypes.includes(propertyType)) {
@@ -147,65 +149,50 @@ const Search = () => {
         setMaxPrice("");
         setsqftfrom("");
         setsqftto("");
-        router.replace({
-            pathname: "/properties/explore",
-            params: {},
-        });
     };
 
     return (
-        <View className="flex-1 bg-white">
-            <TouchableOpacity onPress={() => refRBSheet.current?.open()}>
-                <View className="flex-row items-center justify-between w-full rounded-xl bg-[#f4f2f7] border border-primary-100 py-2 px-4">
-                    <View className="flex-row items-center flex-1">
-                        <Ionicons name="search-outline" size={20} color="#1F2937" />
-                        <TextInput
-                            value={selectedCity || ""}
-                            editable={false}
-                            placeholder={t('searchPlaceholder')}
-                            placeholderTextColor="#999"
-                            className={`text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik'} text-black-200 ml-2 flex-1`}
-                        />
-                    </View>
-                    <Ionicons
-                        name="filter-outline"
-                        size={20}
-                        color="#1F2937"
-                        style={{ paddingLeft: 8, borderLeftWidth: 1, borderLeftColor: "#D1D5DB" }}
+        <View style={styles.container}>
+            <TouchableOpacity onPress={() => refRBSheet.current?.open()} style={styles.searchContainer}>
+                <View style={styles.searchInputContainer}>
+                    <Ionicons name="search-outline" size={20} color="#1F2937" />
+                    <TextInput
+                        value={selectedCity || ""}
+                        editable={false}
+                        placeholder={t('searchPlaceholder')}
+                        placeholderTextColor="#999"
+                        style={styles.searchInput}
                     />
                 </View>
+                <Ionicons
+                    name="filter-outline"
+                    size={20}
+                    color="#1F2937"
+                    style={styles.filterIcon}
+                />
             </TouchableOpacity>
 
             <RBSheet
                 ref={refRBSheet}
                 closeOnDragDown={true}
                 closeOnPressMask={true}
-                height={600}
+                height={Dimensions.get('window').height * 0.8} // Use a percentage of screen height
                 customStyles={{
                     wrapper: { backgroundColor: "rgba(0,0,0,0.5)" },
                     container: { borderTopLeftRadius: 35, borderTopRightRadius: 35, padding: 20, backgroundColor: "white" },
                     draggableIcon: { backgroundColor: "#000", width: 40, height: 5, marginVertical: 10 },
                 }}
             >
-                <View className="flex-row justify-between items-center mb-3">
-                    <Text className={`text-xl ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-bold' : 'font-rubik-bold'} text-black-300`}>
-                        {t('filter')}
-                    </Text>
-                    <TouchableOpacity
-                        onPress={handleReset}
-                        className="px-5 py-2 rounded-xl bg-white border border-gray-300 mr-3"
-                    >
-                        <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-black-300 text-center`}>
-                            {t('reset')}
-                        </Text>
+                <View style={styles.header}>
+                    <Text style={styles.headerText}>{t('filter')}</Text>
+                    <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
+                        <Text style={styles.resetText}>{t('reset')}</Text>
                     </TouchableOpacity>
                 </View>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-black-300 mb-2`}>
-                        {t('city')}
-                    </Text>
-                    <View className="flex-row items-center bg-[#f4f2f7] rounded-xl px-4 py-3">
-                        <Ionicons name="location-outline" size={20} color="#1F2937" style={{ marginRight: 8 }} />
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
+                    <Text style={styles.label}>{t('city')}</Text>
+                    <View style={styles.pickerContainer}>
+                        <Ionicons name="location-outline" size={20} color="#1F2937" style={styles.icon} />
                         <RNPickerSelect
                             onValueChange={(value) => setSelectedCity(value)}
                             items={cityData.map((city, index) => ({
@@ -220,25 +207,17 @@ const Search = () => {
                         />
                     </View>
 
-                    <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-black-300 mt-5 mb-2`}>
-                        Filter property by
-                    </Text>
-                    <View className="flex-row">
+                    <Text style={styles.label}>Filter property by</Text>
+                    <View style={styles.propertyForContainer}>
                         {["Sell", "Rent"].map((option) => {
                             const isSelected = selectedPropertyFor === option;
                             return (
                                 <TouchableOpacity
                                     key={option}
                                     onPress={() => handlePropertyForToggle(option)}
-                                    className={`me-2 px-5 py-4 rounded-xl ${isSelected
-                                        ? "bg-[#8bc83f] border-[#8bc83f]"
-                                        : "bg-[#f4f2f7] border-[#D1D5DB]"
-                                        }`}
+                                    style={[styles.propertyForButton, isSelected && styles.selectedPropertyForButton]}
                                 >
-                                    <Text
-                                        className={`text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} ${isSelected ? "text-white" : "text-[#1F2937]"
-                                            }`}
-                                    >
+                                    <Text style={[styles.propertyForText, isSelected && styles.selectedPropertyForText]}>
                                         For {option}
                                     </Text>
                                 </TouchableOpacity>
@@ -246,63 +225,53 @@ const Search = () => {
                         })}
                     </View>
 
-                    <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-black-300 mt-5 mb-2`}>
-                        {t('priceRange')}
-                    </Text>
-                    <View className="flex-row items-center justify-between">
+                    <Text style={styles.label}>{t('priceRange')}</Text>
+                    <View style={styles.rangeContainer}>
                         <TextInput
                             placeholder={t('min')}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                             value={minPrice}
                             onChangeText={setMinPrice}
-                            className={`rounded-xl p-4 flex-1 bg-[#f4f2f7] text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik'} text-black-200`}
-                            style={{ marginRight: 8 }}
+                            style={styles.input}
                         />
-                        <Text className="text-black-200">-</Text>
+                        <Text style={styles.rangeSeparator}>-</Text>
                         <TextInput
                             placeholder={t('max')}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                             value={maxPrice}
                             onChangeText={setMaxPrice}
-                            className={`rounded-xl p-4 flex-1 bg-[#f4f2f7] text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik'} text-black-200`}
-                            style={{ marginLeft: 8 }}
+                            style={styles.input}
                         />
                     </View>
 
-                    <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-black-300 mt-5 mb-2`}>
-                        {t('squareFeet')}
-                    </Text>
-                    <View className="flex-row items-center justify-between">
+                    <Text style={styles.label}>{t('squareFeet')}</Text>
+                    <View style={styles.rangeContainer}>
                         <TextInput
                             placeholder={t('min')}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                             value={sqftfrom}
                             onChangeText={setsqftfrom}
-                            className={`rounded-xl p-4 flex-1 bg-[#f4f2f7] text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik'} text-black-200`}
-                            style={{ marginRight: 8 }}
+                            style={styles.input}
                         />
-                        <Text className="text-black-200">-</Text>
+                        <Text style={styles.rangeSeparator}>-</Text>
                         <TextInput
                             placeholder={t('max')}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                             value={sqftto}
                             onChangeText={setsqftto}
-                            className={`rounded-xl p-4 flex-1 bg-[#f4f2f7] text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik'} text-black-200`}
-                            style={{ marginLeft: 8 }}
+                            style={styles.input}
                         />
                     </View>
 
-                    <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-black-300 mt-5 mb-2`}>
-                        {t('propertyType')}
-                    </Text>
+                    <Text style={styles.label}>{t('propertyType')}</Text>
                     <ScrollView
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
-                        contentContainerClassName="flex-row"
+                        contentContainerStyle={styles.propertyTypeContainer}
                     >
                         {categoryData.map((cat, index) => {
                             const label = cat.label || cat.name || t('unknown');
@@ -311,15 +280,9 @@ const Search = () => {
                                 <TouchableOpacity
                                     key={cat.id || `category-${index}`}
                                     onPress={() => handlePropertyTypeToggle(label)}
-                                    className={`me-2 px-5 py-4 rounded-xl ${isSelected
-                                        ? "bg-[#8bc83f] border-[#8bc83f]"
-                                        : "bg-[#f4f2f7] border-[#D1D5DB]"
-                                        }`}
+                                    style={[styles.propertyTypeButton, isSelected && styles.selectedPropertyTypeButton]}
                                 >
-                                    <Text
-                                        className={`text-sm ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} ${isSelected ? "text-white" : "text-[#1F2937]"
-                                            }`}
-                                    >
+                                    <Text style={[styles.propertyTypeText, isSelected && styles.selectedPropertyTypeText]}>
                                         {label}
                                     </Text>
                                 </TouchableOpacity>
@@ -328,17 +291,15 @@ const Search = () => {
                     </ScrollView>
                 </ScrollView>
 
-                <View className="flex-row justify-between mt-6">
+                <View style={styles.submitContainer}>
                     <TouchableOpacity
                         onPress={handleSubmit}
-                        className="flex-1 p-4 rounded-xl bg-primary-300"
+                        style={styles.submitButton}
                     >
                         {loading ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text className={`text-base ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} text-white text-center`}>
-                                {t('applyFilter')}
-                            </Text>
+                            <Text style={styles.submitText}>{t('applyFilter')}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
@@ -350,6 +311,73 @@ const Search = () => {
 export default Search;
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fafafa',
+    },
+    searchContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+        backgroundColor: "#f4f2f7",
+        borderRadius: 12,
+        // borderWidth: 1,
+        // borderColor: "#D1D5DB",
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+    },
+    searchInputContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+    },
+    searchInput: {
+        fontSize: 14,
+        color: "#1F2937",
+        paddingVertical: 0,
+        paddingHorizontal: 8,
+        fontFamily: "Rubik-Regular",
+        flex: 1,
+    },
+    filterIcon: {
+        paddingLeft: 8,
+        borderLeftWidth: 1,
+        borderLeftColor: "#D1D5DB",
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    headerText: {
+        fontSize: 20,
+        color: "#1F2937",
+        fontFamily: "Rubik-Bold",
+    },
+    resetButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#D1D5DB",
+    },
+    resetText: {
+        fontSize: 16,
+        color: "#1F2937",
+        fontFamily: "Rubik-Medium",
+        textAlign: "center",
+    },
+    scrollView: {
+        flex: 1,
+    },
+    label: {
+        fontSize: 16,
+        color: "#1F2937",
+        marginBlock: 4,
+        fontFamily: "Rubik-Medium",
+    },
     pickerContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -357,10 +385,95 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 12,
-        marginTop: 8,
+        marginBottom: 8,
     },
     icon: {
         marginRight: 8,
+    },
+    propertyForContainer: {
+        flexDirection: "row",
+        marginBottom: 16,
+    },
+    propertyForButton: {
+        marginRight: 8,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 12,
+        // borderWidth: 1,
+        // borderColor: "#D1D5DB",
+        backgroundColor: "#f4f2f7",
+    },
+    selectedPropertyForButton: {
+        backgroundColor: "#8bc83f",
+        borderColor: "#8bc83f",
+    },
+    propertyForText: {
+        fontSize: 14,
+        color: "#1F2937",
+        fontFamily: "Rubik-Medium",
+    },
+    selectedPropertyForText: {
+        color: "white",
+    },
+    rangeContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 16,
+    },
+    input: {
+        flex: 1,
+        backgroundColor: "#f4f2f7",
+        borderRadius: 12,
+        padding: 12,
+        fontSize: 14,
+        color: "#1F2937",
+        fontFamily: "Rubik-Regular",
+        marginHorizontal: 4,
+    },
+    rangeSeparator: {
+        fontSize: 16,
+        color: "#1F2937",
+        marginHorizontal: 8,
+    },
+    propertyTypeContainer: {
+        flexDirection: "row",
+        paddingVertical: 8,
+    },
+    propertyTypeButton: {
+        marginRight: 8,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 12,
+        // borderWidth: 1,
+        // borderColor: "#D1D5DB",
+        backgroundColor: "#f4f2f7",
+    },
+    selectedPropertyTypeButton: {
+        backgroundColor: "#8bc83f",
+        borderColor: "#8bc83f",
+    },
+    propertyTypeText: {
+        fontSize: 14,
+        color: "#1F2937",
+        fontFamily: "Rubik-Medium",
+    },
+    selectedPropertyTypeText: {
+        color: "white",
+    },
+    submitContainer: {
+        marginTop: 24,
+    },
+    submitButton: {
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: "#8bc83f",
+        alignItems: "center",
+    },
+    submitText: {
+        fontSize: 16,
+        color: "white",
+        fontFamily: "Rubik-Medium",
     },
 });
 
@@ -371,13 +484,15 @@ const pickerSelectStyles = (language) => ({
         paddingVertical: 12,
         paddingHorizontal: 10,
         fontFamily: language === 'hi' ? "NotoSerifDevanagari-Regular" : "Rubik-Regular",
+        flex: 1,
     },
     inputAndroid: {
         fontSize: 14,
         color: "#1F2937",
-        paddingVertical: 12,
+        paddingVertical: 8,
         paddingHorizontal: 10,
         fontFamily: language === 'hi' ? "NotoSerifDevanagari-Regular" : "Rubik-Regular",
+        flex: 1,
     },
     placeholder: {
         color: "#999",

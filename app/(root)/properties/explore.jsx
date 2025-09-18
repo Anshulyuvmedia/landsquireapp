@@ -238,7 +238,7 @@ const Explore = () => {
           <View style={styles.header}>
             <View style={styles.headerRow}>
               <TouchableOpacity
-                onPress={() => router.navigate('/')}
+                onPress={() => router.push('/(tabs)/home')}
                 style={styles.backButton}
               >
                 <Image source={icons.backArrow} style={styles.backIcon} />

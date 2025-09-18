@@ -4,7 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } fr
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEffect } from "react";
 import { useUser } from '@/context/UserContext';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 
 const TabIcon = ({ focused, name, title }) => {
     const scale = useSharedValue(1);
@@ -67,22 +67,17 @@ const TabsLayout = () => {
         { name: "dashboard", title: "Dashboard", icon: "user-o" },
     ];
 
+    // Render a loading screen within the Tabs navigator
     if (loading) {
-        return null; // Delay rendering until userType is fetched
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa' }}>
+                <ActivityIndicator size="large" color="#234F68" />
+            </View>
+        );
     }
-
-    // Hide tab navigation and redirect to loanleads if userType is 'bankagent'
-    // if (userType === 'user') {
-    //     router.push('/mapview');
-    //     return null;
-    // }
-    // else {
-    //     router.push('/');
-    // }
 
     return (
         <Tabs
-            // initialRouteName="mapview"
             screenOptions={{
                 tabBarShowLabel: false,
                 tabBarStyle: {
@@ -94,7 +89,7 @@ const TabsLayout = () => {
                     shadowOffset: { width: 0, height: -4 },
                     shadowOpacity: 0.2,
                     shadowRadius: 8,
-                    height: 45 + insets.bottom,
+                    height: 50 + insets.bottom,
                     paddingBottom: insets.bottom,
                     paddingTop: 20,
                     borderRadius: 25,

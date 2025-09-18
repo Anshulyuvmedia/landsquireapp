@@ -63,5 +63,5 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-    applogo: { width: scale(100), height: scale(100), borderRadius: moderateScale(100), marginTop: 10, },
+    applogo: { width: scale(75), height: scale(75), borderRadius: moderateScale(100), marginBottom: 10, },
 })

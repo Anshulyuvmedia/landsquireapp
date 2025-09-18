@@ -77,8 +77,8 @@ const Mapview = () => {
     const [markersPerPage] = useState(10); // Items per page for map
     const [hasMore, setHasMore] = useState(true);
     const [mapType, setMapType] = useState('hybrid');
-    const [displayMode, setDisplayMode] = useState('both'); // 'both', 'properties', 'projects'
-    const [propertyMode, setPropertyMode] = useState('both'); // 'both', 'sell', 'rent'
+    const [displayMode, setDisplayMode] = useState('properties'); // 'properties', 'projects'
+    const [propertyMode, setPropertyMode] = useState('sell'); // 'sell', 'rent'
 
     const viewItem = (item) => {
         const route = item.type === 'project' ? `/projects/${item.id}` : `/properties/${item.id}`;
@@ -96,20 +96,12 @@ const Mapview = () => {
 
     // Toggle display mode
     const toggleDisplayMode = () => {
-        setDisplayMode((prev) => {
-            if (prev === 'both') return 'properties';
-            if (prev === 'properties') return 'projects';
-            return 'both';
-        });
+        setDisplayMode((prev) => prev === 'properties' ? 'projects' : 'properties');
     };
 
     // Toggle property mode
     const togglePropertyMode = () => {
-        setPropertyMode((prev) => {
-            if (prev === 'both') return 'sell';
-            if (prev === 'sell') return 'rent';
-            return 'both';
-        });
+        setPropertyMode((prev) => prev === 'sell' ? 'rent' : 'sell');
     };
 
     // Fetch filtered data based on city
@@ -274,7 +266,7 @@ const Mapview = () => {
     // Compute filteredData based on modes and search
     useEffect(() => {
         let data = [];
-        if (displayMode === 'properties' || displayMode === 'both') {
+        if (displayMode === 'properties') {
             let props = propertiesData.map(p => ({
                 ...p,
                 type: 'property',
@@ -292,7 +284,7 @@ const Mapview = () => {
             }
             data = [...data, ...props];
         }
-        if (displayMode === 'projects' || displayMode === 'both') {
+        if (displayMode === 'projects') {
             let projs = projectsData.map(p => ({ ...p, type: 'project' }));
             if (searchQuery.trim() !== '') {
                 projs = projs.filter(p =>
@@ -617,7 +609,7 @@ const Mapview = () => {
             {loading && (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#fff" />
-                    <Text style={styles.loadingText}>Loading data...</Text>
+                   <Text style={styles.loadingText}>Loading data...</Text>
                 </View>
             )}
 
@@ -720,7 +712,7 @@ const Mapview = () => {
                                 coordinate={coords}
                                 onPress={() => handleMarkerPress(item)}
                                 anchor={{ x: 0.5, y: 1 }}
-                            // tracksViewChanges={true}
+                                tracksViewChanges={false}
                             >
                                 <View
                                     style={{

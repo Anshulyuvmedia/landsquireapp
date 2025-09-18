@@ -22,19 +22,22 @@ const Dashboard = () => {
       const storedUserData = await AsyncStorage.getItem('userData');
       if (!storedUserData) {
         await AsyncStorage.removeItem('userData');
-        router.push('/signin');
+        if (router.canNavigate()) { // Check if navigation is ready
+          router.push('/signin');
+        }
         return;
       }
 
       const parsedUserData = JSON.parse(storedUserData);
       if (!parsedUserData || !parsedUserData.id) {
         await AsyncStorage.removeItem('userData');
-        router.push('/signin');
+        if (router.canNavigate()) { // Check if navigation is ready
+          router.push('/signin');
+        }
         return;
       }
 
       const token = await AsyncStorage.getItem('userToken');
-      // console.log('token: ',token);
       const response = await axios.get(`https://landsquire.in/api/userprofile?id=${parsedUserData.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,7 +63,9 @@ const Dashboard = () => {
       if (error.response?.status === 401) {
         await AsyncStorage.removeItem('userToken');
         await AsyncStorage.removeItem('userData');
-        router.push('/signin');
+        if (router.canNavigate()) { // Check if navigation is ready
+          router.push('/signin');
+        }
       }
       setImage(images.avatar);
     } finally {
