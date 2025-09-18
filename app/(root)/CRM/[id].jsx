@@ -443,6 +443,20 @@ const LeadDetail = () => {
                             multiline
                         />
                         <View style={styles.modalButtons}>
+
+                            <TouchableOpacity
+                                style={[styles.actionButton, styles.cancelButton]}
+                                onPress={() => {
+                                    setNewNoteDescription('');
+                                    setSelectedStatus(null);
+                                    setShowManageModal(false);
+                                }}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
+                                    {t('Cancel')}
+                                </Text>
+                            </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.saveButton, isSaving && styles.disabledButton]}
                                 onPress={saveChanges}
@@ -456,19 +470,6 @@ const LeadDetail = () => {
                                         {t('Save')}
                                     </Text>
                                 )}
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.actionButton, styles.cancelButton]}
-                                onPress={() => {
-                                    setNewNoteDescription('');
-                                    setSelectedStatus(null);
-                                    setShowManageModal(false);
-                                }}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('Cancel')}
-                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -637,6 +638,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#fafafa',
     },
     loadingText: {
         fontSize: moderateScale(16),

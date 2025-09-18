@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View, useWindowDimensions, TouchableOpacity, Image, ActivityIndicator, TextInput } from 'react-native';
-import React, { useEffect, useState, useRef } from 'react';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { StyleSheet, Text, View, useWindowDimensions, TouchableOpacity, Image, ActivityIndicator, TextInput, ScrollView } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { TabView, SceneMap } from 'react-native-tab-view';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,45 @@ const initialRoutes = [
     { key: 'Won', title: 'Won' },
     { key: 'Final', title: 'Final' },
 ];
+
+// Custom TabBar Component with ScrollView
+const CustomTabBar = React.memo(({ navigationState, setIndex, i18n }) => {
+    const handleTabPress = useCallback((index) => {
+        setIndex(index);
+    }, [setIndex]);
+
+    return (
+        <View>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.tabBar}
+                contentContainerStyle={styles.tabBarContent}
+            >
+                {navigationState.routes.map((route, idx) => (
+                    <TouchableOpacity
+                        key={route.key}
+                        style={[styles.tabStyle, navigationState.index === idx ? styles.tabActive : styles.tabInactive]}
+                        onPress={() => handleTabPress(idx)}
+                        activeOpacity={0.7}
+                    >
+                        <Text
+                            style={[
+                                styles.tabLabel,
+                                i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
+                                navigationState.index === idx ? { color: '#ffffff' } : { color: '#666' },
+                            ]}
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                        >
+                            {route.title}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        </View>
+    );
+});
 
 const CrmPortal = () => {
     const { t, i18n } = useTranslation();
@@ -62,37 +101,32 @@ const CrmPortal = () => {
 
     useEffect(() => {
         if (enquiries.length > 0) {
+            // console.log('useEffect for cities/propertyTypes triggered');
+            // Extract unique cities and property types
             const uniqueCities = [...new Set(enquiries.map(e => e.inwhichcity).filter(Boolean))].sort();
-            setCities([{ label: t('All Cities'), value: 'all' }, ...uniqueCities.map(c => ({ label: c, value: c }))]);
-
             const uniqueTypes = [...new Set(enquiries.map(e => e.housecategory).filter(Boolean))].sort();
-            setPropertyTypes([{ label: t('All Types'), value: 'all' }, ...uniqueTypes.map(t => ({ label: t, value: t }))]);
 
-            // Initialize tab counts
-            updateTabCounts(enquiries);
+            // Set cities and property types with "All" options
+            setCities([{ label: t('All Cities'), value: 'all' }, ...uniqueCities.map(c => ({ label: c, value: c }))]);
+            setPropertyTypes([{ label: t('All Types'), value: 'all' }, ...uniqueTypes.map(t => ({ label: t, value: t }))]);
+        } else {
+            console.log('No enquiries available');
+            setCities([{ label: t('All Cities'), value: 'all' }]);
+            setPropertyTypes([{ label: t('All Types'), value: 'all' }]);
+            setDynamicRoutes(initialRoutes);
         }
     }, [enquiries, t]);
 
+    useEffect(() => {
+        if (enquiries.length > 0) {
+            applyFilters();
+        }
+    }, [filter, searchTerm, fromDate, toDate, selectedCity, selectedPropertyType, enquiries]);
+
     // Function to capitalize first letter of each word
     const capitalize = (str) => {
+        if (!str) return '';
         return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-    };
-
-    // Function to update tab counts
-    const updateTabCounts = (filtered) => {
-        const newCount = filtered.filter(e => e.status?.toLowerCase() === 'new').length;
-        const qualifiedCount = filtered.filter(e => e.status?.toLowerCase() === 'qualified').length;
-        const notRespondedCount = filtered.filter(e => e.status?.toLowerCase() === 'not responded').length;
-        const wonCount = filtered.filter(e => e.status?.toLowerCase() === 'won').length;
-        const finalCount = filtered.filter(e => e.status?.toLowerCase() === 'final').length;
-
-        setDynamicRoutes([
-            { key: 'NewLead', title: `${capitalize(t('New'))} (${newCount})` },
-            { key: 'QualifiedLead', title: `${capitalize(t('Qualified'))} (${qualifiedCount})` },
-            { key: 'NotResponded', title: `${capitalize(t('Not Responded'))} (${notRespondedCount})` },
-            { key: 'Won', title: `${capitalize(t('Won'))} (${wonCount})` },
-            { key: 'Final', title: `${capitalize(t('Final'))} (${finalCount})` },
-        ]);
     };
 
     // Apply filters and update tab counts
@@ -114,12 +148,12 @@ const CrmPortal = () => {
         if (tempSearchTerm) {
             const lowerSearch = tempSearchTerm.toLowerCase();
             filtered = filtered.filter(e =>
-                e.name?.toLowerCase().includes(lowerSearch) ||
-                e.email?.toLowerCase().includes(lowerSearch) ||
-                e.mobilenumber?.includes(lowerSearch) ||
-                e.inwhichcity?.toLowerCase().includes(lowerSearch) ||
-                e.housecategory?.toLowerCase().includes(lowerSearch) ||
-                e.propertyfor?.toLowerCase().includes(lowerSearch)
+                (e.name?.toLowerCase().includes(lowerSearch) || '') ||
+                (e.email?.toLowerCase().includes(lowerSearch) || '') ||
+                (e.mobilenumber?.includes(lowerSearch) || '') ||
+                (e.inwhichcity?.toLowerCase().includes(lowerSearch) || '') ||
+                (e.housecategory?.toLowerCase().includes(lowerSearch) || '') ||
+                (e.propertyfor?.toLowerCase().includes(lowerSearch) || '')
             );
         }
 
@@ -139,8 +173,21 @@ const CrmPortal = () => {
         setSelectedCity(tempSelectedCity);
         setSelectedPropertyType(tempSelectedPropertyType);
 
-        updateTabCounts(filtered);
-        filterSheetRef.current.close();
+        // Update tab counts
+        const newCount = filtered.filter(e => e.status?.toLowerCase() === 'new').length;
+        const qualifiedCount = filtered.filter(e => e.status?.toLowerCase() === 'qualified').length;
+        const notRespondedCount = filtered.filter(e => e.status?.toLowerCase() === 'not responded').length;
+        const wonCount = filtered.filter(e => e.status?.toLowerCase() === 'won').length;
+        const finalCount = filtered.filter(e => e.status?.toLowerCase() === 'final').length;
+
+        setDynamicRoutes([
+            { key: 'NewLead', title: `${capitalize(t('New'))} (${newCount})` },
+            { key: 'QualifiedLead', title: `${capitalize(t('Qualified'))} (${qualifiedCount})` },
+            { key: 'NotResponded', title: `${capitalize(t('No Reply'))} (${notRespondedCount})` },
+            { key: 'Won', title: `${capitalize(t('Won'))} (${wonCount})` },
+            { key: 'Final', title: `${capitalize(t('Final'))} (${finalCount})` },
+        ]);
+        filterSheetRef.current?.close();
     };
 
     const fetchUserEnquiries = async () => {
@@ -151,6 +198,7 @@ const CrmPortal = () => {
                 throw new Error('User data or ID missing');
             }
             const token = await AsyncStorage.getItem('userToken');
+            // console.log('Fetching enquiries for user ID:', parsedPropertyData.id);
 
             const response = await axios.get(`https://landsquire.in/api/fetchenquiries?id=${parsedPropertyData.id}`, {
                 headers: {
@@ -177,10 +225,8 @@ const CrmPortal = () => {
                     return { ...enquiry, propertybid: bids };
                 });
 
-                // ✅ Don't filter out empty bids
                 setEnquiries(parsedEnquiries);
                 setFilteredEnquiries(parsedEnquiries);
-
             } else {
                 throw new Error('Unexpected API response format');
             }
@@ -194,11 +240,26 @@ const CrmPortal = () => {
     };
 
     // Define dynamic routes with filtered enquiries based on status
-    const NewLeadRoute = () => <NewLead enquiries={filteredEnquiries.filter(e => e.status?.toLowerCase() === 'new')} />;
-    const QualifiedLeadRoute = () => <QualifiedLead enquiries={filteredEnquiries.filter(e => e.status?.toLowerCase() === 'qualified')} />;
-    const NotRespondedRoute = () => <NotResponded enquiries={filteredEnquiries.filter(e => e.status?.toLowerCase() === 'not responded')} />;
-    const WonRoute = () => <Won enquiries={filteredEnquiries.filter(e => e.status?.toLowerCase() === 'won')} />;
-    const FinalRoute = () => <Final enquiries={filteredEnquiries.filter(e => e.status?.toLowerCase() === 'final')} />;
+    const NewLeadRoute = () => {
+        const newEnquiries = filteredEnquiries.filter(e => e.status?.toLowerCase() === 'new');
+        return <NewLead enquiries={newEnquiries} />;
+    };
+    const QualifiedLeadRoute = () => {
+        const qualifiedEnquiries = filteredEnquiries.filter(e => e.status?.toLowerCase() === 'qualified');
+        return <QualifiedLead enquiries={qualifiedEnquiries} />;
+    };
+    const NotRespondedRoute = () => {
+        const notRespondedEnquiries = filteredEnquiries.filter(e => e.status?.toLowerCase() === 'not responded');
+        return <NotResponded enquiries={notRespondedEnquiries} />;
+    };
+    const WonRoute = () => {
+        const wonEnquiries = filteredEnquiries.filter(e => e.status?.toLowerCase() === 'won');
+        return <Won enquiries={wonEnquiries} />;
+    };
+    const FinalRoute = () => {
+        const finalEnquiries = filteredEnquiries.filter(e => e.status?.toLowerCase() === 'final');
+        return <Final enquiries={finalEnquiries} />;
+    };
 
     // Define the SceneMap with the dynamic routes
     const renderScene = SceneMap({
@@ -213,22 +274,10 @@ const CrmPortal = () => {
     const handleFilterChange = (value) => {
         setTempFilter(value);
         setFilter(value);
-        applyFilters();
     };
 
     // Reset filters
     const resetFilters = () => {
-        setTempSearchTerm('');
-        setTempFromDate(null);
-        setTempToDate(null);
-        setTempSelectedCity('all');
-        setTempSelectedPropertyType('all');
-        setTempFilter('All');
-        applyFilters();
-    };
-
-    // Clear all filters
-    const clearAllFilters = () => {
         setTempSearchTerm('');
         setTempFromDate(null);
         setTempToDate(null);
@@ -318,6 +367,19 @@ const CrmPortal = () => {
                         ]}
                     >
                         {t('Filters')}
+                        {(tempFilter !== 'All' || tempSearchTerm !== '' || tempFromDate !== null || tempToDate !== null ||
+                            tempSelectedCity !== 'all' || tempSelectedPropertyType !== 'all') && (
+                                <Text style={styles.filterCount}>
+                                    {' (' + [
+                                        tempFilter !== 'All' ? 1 : 0,
+                                        tempSearchTerm ? 1 : 0,
+                                        tempFromDate ? 1 : 0,
+                                        tempToDate ? 1 : 0,
+                                        tempSelectedCity !== 'all' ? 1 : 0,
+                                        tempSelectedPropertyType !== 'all' ? 1 : 0,
+                                    ].reduce((a, b) => a + b, 0) + ')'}
+                                </Text>
+                            )}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -326,11 +388,15 @@ const CrmPortal = () => {
             {loading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#234F68" />
-                    <Text style={styles.loadingText}>{t('loading')}</Text>
+                    <Text style={styles.loadingText}>{t('loading...')}</Text>
                 </View>
             ) : error ? (
                 <View style={styles.errorCard}>
                     <Text style={styles.errorText}>{error}</Text>
+                </View>
+            ) : filteredEnquiries.length === 0 ? (
+                <View style={styles.noDataContainer}>
+                    <Text style={styles.noDataText}>{t('No enquiries available')}</Text>
                 </View>
             ) : (
                 <TabView
@@ -338,41 +404,7 @@ const CrmPortal = () => {
                     renderScene={renderScene}
                     onIndexChange={setIndex}
                     initialLayout={{ width: layout.width }}
-                    renderTabBar={props => (
-                        <TabBar
-                            {...props}
-                            scrollEnabled={true}
-                            style={styles.tabBar}
-                            tabStyle={styles.tabStyle}
-                            indicatorStyle={styles.tabIndicator}
-                            labelStyle={[
-                                styles.tabLabel,
-                                i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
-                            ]}
-                            activeColor="#ffffff"
-                            inactiveColor="#666"
-                            pressColor="#e6e8eb"
-                            renderTabBarItem={({ key, ...restProps }) => (
-                                <TouchableOpacity
-                                    key={key}
-                                    {...restProps}
-                                    style={[styles.tabStyle, index === restProps.navigationState.routes.findIndex(r => r.key === key) ? styles.tabActive : styles.tabInactive]}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.tabLabel,
-                                            i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
-                                            index === restProps.navigationState.routes.findIndex(r => r.key === key) ? { color: '#ffffff' } : { color: '#666' },
-                                        ]}
-                                        numberOfLines={1}
-                                        adjustsFontSizeToFit
-                                    >
-                                        {restProps.route.title}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    )}
+                    renderTabBar={(props) => <CustomTabBar {...props} setIndex={setIndex} i18n={i18n} />}
                     sceneContainerStyle={styles.tabView}
                     animationEnabled={true}
                     swipeEnabled={true}
@@ -450,7 +482,7 @@ const CrmPortal = () => {
                         items={cities}
                         style={pickerSelectStyles}
                         value={tempSelectedCity}
-                        placeholder={{ label: t('All Cities'), value: 'all' }}
+                        // placeholder={'Select city'}
                     />
 
                     <Text style={styles.filterLabel}>{t('Property Type')}</Text>
@@ -459,7 +491,7 @@ const CrmPortal = () => {
                         items={propertyTypes}
                         style={pickerSelectStyles}
                         value={tempSelectedPropertyType}
-                        placeholder={{ label: t('All Types'), value: 'all' }}
+                        // placeholder={'Select Property type'}
                     />
 
                     <View style={styles.bottomSheetButtons}>
@@ -487,19 +519,6 @@ const CrmPortal = () => {
                                 ]}
                             >
                                 {t('Reset')}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.clearAllButton}
-                            onPress={clearAllFilters}
-                        >
-                            <Text
-                                style={[
-                                    styles.clearAllButtonText,
-                                    i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
-                                ]}
-                            >
-                                {t('Clear All')}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -563,8 +582,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: scale(16),
         paddingVertical: verticalScale(8),
         backgroundColor: '#fafafa',
-        // borderBottomWidth: 1,
-        // borderBottomColor: '#e6e8eb',
     },
     typeFilterContainer: {
         flexDirection: 'row',
@@ -642,36 +659,43 @@ const styles = StyleSheet.create({
         color: '#e63946',
         textAlign: 'center',
     },
-    tabBar: {
-        backgroundColor: '#fafafa',
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 2 },
-        // shadowOpacity: 0.15,
-        // shadowRadius: 4,
-        // elevation: 3,
-        paddingHorizontal: scale(8),
-        paddingVertical: verticalScale(4),
-    },
-    tabIndicator: {
-        backgroundColor: '#fafafa',
-        height: verticalScale(3),
-        borderRadius: moderateScale(2),
-    },
-    tabStyle: {
-        width: moderateScale(120),
-        borderRadius: moderateScale(12),
-        padding: verticalScale(4),
+    noDataContainer: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        padding: moderateScale(16),
+    },
+    noDataText: {
+        fontSize: moderateScale(16),
+        color: '#666',
+        textAlign: 'center',
+    },
+    tabBar: {
+        backgroundColor: '#fafafa',
+        paddingVertical: verticalScale(2), // Reduced padding
+        height: verticalScale(50), // Explicit height for compactness
+    },
+    tabBarContent: {
+        paddingHorizontal: scale(8),
+        alignItems: 'center', // Center tabs vertically
+    },
+    tabStyle: {
+        width: moderateScale(100), // Reduced width
+        borderRadius: moderateScale(8), // Smaller radius
+        paddingVertical: verticalScale(5), // Reduced padding
+        marginHorizontal: scale(4),
+        alignItems: 'center',
+        justifyContent: 'center',
+
     },
     tabActive: {
         backgroundColor: '#234F68',
     },
     tabInactive: {
-        backgroundColor: '#fafafa',
+        backgroundColor: '#e6e8eb',
     },
     tabLabel: {
-        fontSize: moderateScale(14),
+        fontSize: moderateScale(12), // Reduced font size
         fontWeight: '600',
         textAlign: 'center',
         textTransform: 'capitalize',
@@ -740,7 +764,7 @@ const styles = StyleSheet.create({
         borderRadius: moderateScale(8),
         flex: 1,
         alignItems: 'center',
-        marginRight: scale(4),
+        marginRight: scale(8),
     },
     applyButtonText: {
         fontSize: moderateScale(14),
@@ -753,24 +777,15 @@ const styles = StyleSheet.create({
         borderRadius: moderateScale(8),
         flex: 1,
         alignItems: 'center',
-        marginHorizontal: scale(4),
     },
     resetButtonText: {
         fontSize: moderateScale(14),
         color: '#ffffff',
         fontWeight: '600',
     },
-    clearAllButton: {
-        backgroundColor: '#6B7280',
-        padding: moderateScale(12),
-        borderRadius: moderateScale(8),
-        flex: 1,
-        alignItems: 'center',
-        marginLeft: scale(4),
-    },
-    clearAllButtonText: {
-        fontSize: moderateScale(14),
-        color: '#ffffff',
+    filterCount: {
+        fontSize: moderateScale(12),
+        color: '#e63946',
         fontWeight: '600',
     },
 });

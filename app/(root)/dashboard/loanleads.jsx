@@ -172,7 +172,7 @@ const Loanleads = () => {
                     </View>
                 </View>
                 <View style={styles.buttonContainer}>
-                    {item.propertyid && (
+                    {/* {item.propertyid && (
                         <TouchableOpacity
                             style={styles.actionButton}
                             onPress={() => router.push(`/properties/${item.propertyid}`)}
@@ -181,7 +181,7 @@ const Loanleads = () => {
                                 {t('viewProperty')}
                             </Text>
                         </TouchableOpacity>
-                    )}
+                    )} */}
                     {item.agentid && (
                         <TouchableOpacity
                             style={[styles.actionButton, styles.agentButton]}
@@ -250,7 +250,7 @@ const Loanleads = () => {
                 <Text style={[styles.title, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
                     {t('Loan Enquiries')}
                 </Text>
-                <TouchableOpacity onPress={() => router.push('/dashboard')} style={styles.backButton}>
+                <TouchableOpacity onPress={() => router.push('/(tabs)/dashboard')} style={styles.backButton}>
                     <Image source={icons.backArrow} style={styles.backIcon} />
                 </TouchableOpacity>
                 {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
