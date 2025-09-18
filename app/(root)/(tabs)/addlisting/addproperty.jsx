@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View, TextInput, FlatList, Platform, Modal, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, KeyboardAvoidingView, TextInput, FlatList, Modal, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import icons from '@/constants/icons';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
@@ -8,10 +8,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView, { Marker } from "react-native-maps";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import Constants from "expo-constants";
 import 'react-native-get-random-values';
-// import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import RBSheet from 'react-native-raw-bottom-sheet';
@@ -19,24 +18,21 @@ import { v4 as uuidv4 } from 'uuid';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const Addproperty = () => {
-    const [sessionToken, setSessionToken] = useState(uuidv4());
+    const [sessionTokenCity, setSessionTokenCity] = useState(uuidv4()); // Session token for city search
+    const [sessionTokenLocation, setSessionTokenLocation] = useState(uuidv4()); // Session token for location search
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
-    const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '', });
+    const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '' });
     const [step2Data, setStep2Data] = useState({ approxrentalincome: '', historydate: [], price: '' });
     const [step3Data, setStep3Data] = useState({ bathroom: '', floor: '', city: '', officeaddress: '', bedroom: '' });
     const [isValid, setIsValid] = useState(false);
 
     const [propertyDocuments, setPropertyDocuments] = useState([]);
     const [masterPlanDoc, setMasterPlanDoc] = useState([]);
-
     const [errors, setErrors] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
-    // const [selectedStatus, setSelectedStatus] = useState("unpublished");
     const [mainImage, setMainImage] = useState(null);
-
     const [videos, setVideos] = useState([]);
     const [galleryImages, setGalleryImages] = useState([]);
-
     const [loading, setLoading] = useState(false);
     const [amenity, setAmenity] = useState('');
     const [amenities, setAmenities] = useState([]);
@@ -47,7 +43,7 @@ const Addproperty = () => {
         longitudeDelta: 0.0121,
     });
     const [coordinates, setCoordinates] = useState({
-        latitude: 20.5937, // Default to India's coordinates
+        latitude: 20.5937,
         longitude: 78.9629,
     });
     const [fullAddress, setFullAddress] = useState("");
@@ -55,28 +51,26 @@ const Addproperty = () => {
     const [selectedDate, setSelectedDate] = useState('');
     const [historyPrice, setHistoryPrice] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
-    const [modalType, setModalType] = useState(null); // 'mainImage', 'galleryImages', or 'video'
+    const [modalType, setModalType] = useState(null);
     const [categoryData, setCategoryData] = useState([]);
     const [landArea, setLandArea] = useState("");
     const [selectedUnit, setSelectedUnit] = useState('sqft');
     const [selectedSubCategory, setSelectedSubCategory] = useState('');
     const [selectedPropertyFor, setSelectedPropertyFor] = useState('Sell');
-    const [suggestions, setSuggestions] = useState([]);
+    const [citySuggestions, setCitySuggestions] = useState([]); // Suggestions for city
+    const [locationSuggestions, setLocationSuggestions] = useState([]); // Suggestions for location
     const [message, setMessage] = useState({ type: '', title: '', text: '' });
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTermCity, setSearchTermCity] = useState('');
+    const [searchTermLocation, setSearchTermLocation] = useState('');
 
-    // State for tracking invalid fields
     const [step1Errors, setStep1Errors] = useState({ property_name: false, description: false, nearbylocation: false });
     const [step2Errors, setStep2Errors] = useState({ approxrentalincome: false, price: false });
     const [step3Errors, setStep3Errors] = useState({ bathroom: false, floor: false, city: false, officeaddress: false, bedroom: false });
     const [step4Errors, setStep4Errors] = useState({ category: false, mainImage: false, galleryImages: false, coordinates: false, documents: false });
 
-    // RBSheet ref
     const rbSheetRef = useRef();
 
-    // State for RBSheet message
     const [sheetMessage, setSheetMessage] = useState({ title: '', message: '', type: 'error' });
-
 
     const subcategoryOptions = {
         Agriculture: [
@@ -109,6 +103,7 @@ const Addproperty = () => {
         { label: 'bigha', value: 'bigha' },
         { label: 'acre', value: 'acre' },
     ];
+
     const buttonPreviousTextStyle = {
         paddingInline: 20,
         paddingBlock: 5,
@@ -124,14 +119,9 @@ const Addproperty = () => {
         color: 'white',
     };
 
-
-    // const status = [
-    //     { label: 'Unpublished', value: 'unpublished' },
-    //     { label: 'Published', value: 'published' },
-    // ];
     const [visibleData, setVisibleData] = useState(step2Data.historydate.slice(0, 10));
     const [currentIndex, setCurrentIndex] = useState(10);
-    // console.log('fullAddress', fullAddress);
+
     const validateStep = (step) => {
         let isValid = true;
         let message = '';
@@ -142,7 +132,6 @@ const Addproperty = () => {
                 property_name: !step1Data?.property_name,
                 description: !step1Data?.description,
                 nearbylocation: !step1Data?.nearbylocation,
-                // purpose: !selectedPropertyFor,
                 category: !selectedCategory,
                 subcategory: !selectedSubCategory,
                 mainImage: !mainImage,
@@ -154,7 +143,7 @@ const Addproperty = () => {
                 message = [
                     newErrors.property_name ? 'Please Enter Property Name.' : '',
                     newErrors.description ? 'Please Enter Description' : '',
-                    newErrors.nearbylocation ? 'Please enter atleast one landmarks.' : '',
+                    newErrors.nearbylocation ? 'Please enter at least one landmark.' : '',
                     newErrors.category ? 'Please select category.' : '',
                     newErrors.subcategory ? 'Please select sub category.' : '',
                     newErrors.mainImage ? 'Please upload at least one property image.' : '',
@@ -165,18 +154,15 @@ const Addproperty = () => {
         if (step === 2) {
             const newErrors = {
                 approxrentalincome: !step2Data?.approxrentalincome,
-                // historydate: step2Data?.historydate.length === 0,
                 price: !step2Data?.price,
             };
             setStep2Errors(newErrors);
             if (Object.values(newErrors).some(error => error)) {
                 isValid = false;
                 title = 'Step 2 Error';
-                message = 'Approx Rental Income, Price, and at least one History Date are required.';
                 message = [
                     newErrors.approxrentalincome ? 'Please enter approx rental income.' : '',
                     newErrors.price ? 'Please enter current property price.' : '',
-                    // newErrors.historydate ? 'Please enter price history' : '',
                 ].filter(msg => msg).join('\n');
             }
         }
@@ -184,9 +170,6 @@ const Addproperty = () => {
         if (step === 3) {
             const newErrors = {
                 amenities: amenities.length < 1,
-                // floor: !step3Data?.floor,
-                // bathroom: !step3Data?.bathroom,
-                // bedroom: !step3Data?.bedroom,
                 city: !step3Data?.city,
                 officeaddress: !step3Data?.officeaddress,
                 landArea: !landArea,
@@ -198,9 +181,6 @@ const Addproperty = () => {
                 title = 'Step 3 Error';
                 message = [
                     newErrors.amenities ? 'Please enter amenities.' : '',
-                    // newErrors.floor ? 'Please enter no. of floors' : '',
-                    // newErrors.bathroom ? 'Please enter no. of bathroom.' : '',
-                    // newErrors.bedroom ? 'Please enter no. of bathroom.' : '',
                     newErrors.landArea ? 'Please enter land area.' : '',
                     newErrors.city ? 'Please enter city.' : '',
                     newErrors.officeaddress ? 'Please enter Property address.' : '',
@@ -211,26 +191,17 @@ const Addproperty = () => {
 
         if (step === 4) {
             const newErrors = {
-                galleryImages: galleryImages.length < 3, // ✅ corrected to match message (at least 2)
-                // videos: videos.length < 1,
-                // propertyDocuments: propertyDocuments.length < 1,
-                // masterPlanDoc: masterPlanDoc.length < 1,
+                galleryImages: galleryImages.length < 3,
             };
-
             setStep4Errors(newErrors);
-
             if (Object.values(newErrors).some(error => error)) {
                 isValid = false;
                 title = 'Step 4 Error';
                 message = [
                     newErrors.galleryImages ? 'Please upload at least 3 gallery images.' : '',
-                    // newErrors.videos ? 'Please upload at least 1 video.' : '',
-                    // newErrors.propertyDocuments ? 'Please upload at least 1 property document.' : '',
-                    // newErrors.masterPlanDoc ? 'Please upload a master plan document.' : '',
                 ].filter(msg => msg).join('\n');
             }
         }
-
 
         if (!isValid) {
             setErrors(true);
@@ -242,7 +213,6 @@ const Addproperty = () => {
 
         return isValid;
     };
-
 
     const onNextStep = (step) => {
         if (!validateStep(step)) {
@@ -380,34 +350,29 @@ const Addproperty = () => {
         }
     };
 
-
-    // Handle Date Change
     const handleDateChange = (event, date) => {
         setShow(false);
         if (date) {
-            const formattedDate = date.toLocaleDateString("en-GB"); // Convert to YYYY-MM-DD
+            const formattedDate = date.toLocaleDateString("en-GB");
             setSelectedDate(formattedDate);
         }
     };
 
-    // Add Price History Entry
     const formatDate = (dateString) => {
-        const [day, month, year] = dateString.split("/");  // Split DD/MM/YYYY
-        return `${year}-${month}-${day}`;  // Convert to YYYY-MM-DD
+        const [day, month, year] = dateString.split("/");
+        return `${year}-${month}-${day}`;
     };
 
     const addPriceHistory = () => {
         if (selectedDate && historyPrice) {
             const newHistoryEntry = {
-                dateValue: formatDate(selectedDate),  // Convert date format
+                dateValue: formatDate(selectedDate),
                 priceValue: historyPrice
             };
-
             setStep2Data((prevData) => ({
                 ...prevData,
                 historydate: [...prevData.historydate, newHistoryEntry],
             }));
-
             setSelectedDate('');
             setHistoryPrice('');
         }
@@ -419,7 +384,6 @@ const Addproperty = () => {
             const response = await axios.get(`https://landsquire.in/api/get-categories`);
             if (response.data?.categories) {
                 setCategoryData(response.data.categories);
-                // console.log('categoryData', response.data.categories);
             } else {
                 console.error("Unexpected API response format:", response.data);
             }
@@ -430,19 +394,19 @@ const Addproperty = () => {
         }
     };
 
-
     useEffect(() => {
         fetchCategories();
         if (step2Data.historydate.length > 0) {
             setVisibleData(step2Data.historydate.slice(0, currentIndex));
         }
     }, [step2Data.historydate]);
+
     const loadMore = () => {
         const nextIndex = currentIndex + 10;
         setVisibleData(step2Data.historydate.slice(0, nextIndex));
         setCurrentIndex(nextIndex);
     };
-    // Function to remove a specific price history entry
+
     const removePriceHistory = (index) => {
         setStep2Data((prevData) => {
             const updatedHistory = prevData.historydate.filter((_, i) => i !== index);
@@ -454,92 +418,223 @@ const Addproperty = () => {
     const pickDocument = async () => {
         let result = await DocumentPicker.getDocumentAsync({
             type: 'application/pdf',
-            multiple: true, // Enable multiple selection
+            multiple: true,
         });
-
         if (result.canceled) return;
-
         const selectedDocuments = Array.isArray(result.assets) ? result.assets : [result];
-
         const newDocuments = selectedDocuments.map(doc => ({
             uri: doc.uri,
             name: doc.name || 'Unnamed Document',
-            thumbnail: 'https://cdn-icons-png.flaticon.com/512/337/337946.png', // PDF icon
+            thumbnail: 'https://cdn-icons-png.flaticon.com/512/337/337946.png',
         }));
-
         setPropertyDocuments(prevDocs => [...prevDocs, ...newDocuments]);
     };
 
-    // Function to remove a document
     const removeDocument = (index) => {
         setPropertyDocuments(prevDocs => prevDocs.filter((_, i) => i !== index));
     };
 
     const pickMasterPlan = async () => {
         let result = await DocumentPicker.getDocumentAsync({
-            type: ['application/pdf', 'image/*'], // Allow PDFs and images
+            type: ['application/pdf', 'image/*'],
             multiple: true,
         });
-
         if (result.canceled) return;
-
         const selectedDocuments = Array.isArray(result.assets) ? result.assets : [result];
-
         const newDocuments = selectedDocuments.map(doc => ({
             uri: doc.uri,
             name: doc.name || 'Unnamed Document',
-            thumbnail: doc.mimeType.startsWith('image') ? doc.uri : 'https://cdn-icons-png.flaticon.com/512/337/337946.png', // Image preview or PDF icon
+            thumbnail: doc.mimeType.startsWith('image') ? doc.uri : 'https://cdn-icons-png.flaticon.com/512/337/337946.png',
         }));
-
         setMasterPlanDoc(prevDocs => [...prevDocs, ...newDocuments]);
     };
 
-    // Function to remove a document
     const removeMasterPlan = (index) => {
         setMasterPlanDoc(prevDocs => prevDocs.filter((_, i) => i !== index));
     };
 
-    const handlePlaceSelect = (data, details = null) => {
-        if (details?.geometry?.location) {
-            const { lat, lng } = details.geometry.location;
-            setFullAddress(details.formatted_address);
-            setRegion({
-                latitude: lat,
-                longitude: lng,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.0121,
+    const fetchCitySuggestions = async (input) => {
+        if (input.length <= 2) {
+            setCitySuggestions([]);
+            return;
+        }
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
+                params: {
+                    input,
+                    components: 'country:IN',
+                    types: '(cities)',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenCity,
+                },
             });
-            setCoordinates({
-                latitude: parseFloat(lat) ?? 0,
-                longitude: parseFloat(lng) ?? 0,
+            if (response.data.status === 'OK') {
+                setCitySuggestions(response.data.predictions);
+            } else {
+                setCitySuggestions([]);
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch city suggestions.',
+                });
+            }
+        } catch (error) {
+            console.error('Fetch City Suggestions Error:', error);
+            setCitySuggestions([]);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during city search.',
             });
         }
     };
 
-    // Function to handle manual selection on the map
+    const handleCitySelect = async (placeId) => {
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
+                params: {
+                    place_id: placeId,
+                    fields: 'address_components',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenCity,
+                },
+            });
+            if (response.data.status === 'OK') {
+                const components = response.data.result.address_components;
+                let selectedCity = '';
+                components.forEach(comp => {
+                    if (comp.types.includes('locality') || comp.types.includes('sublocality')) {
+                        selectedCity = comp.long_name;
+                    }
+                });
+                if (selectedCity) {
+                    setStep3Data({ ...step3Data, city: selectedCity });
+                    setSearchTermCity(selectedCity);
+                    setCitySuggestions([]);
+                    setSessionTokenCity(uuidv4());
+                } else {
+                    setMessage({
+                        type: 'error',
+                        title: 'Error',
+                        text: 'Could not extract city from selection.',
+                    });
+                }
+            } else {
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch city details.',
+                });
+            }
+        } catch (error) {
+            console.error('Handle City Select Error:', error);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during city selection.',
+            });
+        }
+    };
+
+    const fetchLocationSuggestions = async (input) => {
+        if (input.length <= 2) {
+            setLocationSuggestions([]);
+            return;
+        }
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
+                params: {
+                    input,
+                    components: 'country:IN',
+                    types: 'geocode',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenLocation,
+                },
+            });
+            if (response.data.status === 'OK') {
+                setLocationSuggestions(response.data.predictions);
+            } else {
+                setLocationSuggestions([]);
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch location suggestions.',
+                });
+            }
+        } catch (error) {
+            console.error('Fetch Location Suggestions Error:', error);
+            setLocationSuggestions([]);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during location search.',
+            });
+        }
+    };
+
+    const handleLocationSelect = async (placeId) => {
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
+                params: {
+                    place_id: placeId,
+                    fields: 'address_components,formatted_address,geometry',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenLocation,
+                },
+            });
+            if (response.data.status === 'OK') {
+                const { lat, lng } = response.data.result.geometry.location;
+                setFullAddress(response.data.result.formatted_address);
+                setRegion({
+                    latitude: lat,
+                    longitude: lng,
+                    latitudeDelta: 0.015,
+                    longitudeDelta: 0.0121,
+                });
+                setCoordinates({
+                    latitude: parseFloat(lat) ?? 0,
+                    longitude: parseFloat(lng) ?? 0,
+                });
+                setSearchTermLocation(response.data.result.formatted_address);
+                setLocationSuggestions([]);
+                setSessionTokenLocation(uuidv4());
+            } else {
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch location details.',
+                });
+            }
+        } catch (error) {
+            console.error('Handle Location Select Error:', error);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during location selection.',
+            });
+        }
+    };
+
     const handleMapPress = (e) => {
         if (!e?.nativeEvent?.coordinate) return;
-
         const { latitude, longitude } = e.nativeEvent.coordinate;
-
         setCoordinates({
             latitude,
             longitude,
         });
-
         setRegion((prev) => ({
             ...prev,
             latitude,
             longitude,
         }));
+        updateFullAddress(latitude, longitude);
+        setSearchTermLocation('');
     };
-
 
     const getUserData = async () => {
         try {
             const userData = await AsyncStorage.getItem('userData');
             const userToken = await AsyncStorage.getItem('userToken');
-
             return {
                 userData: userData ? JSON.parse(userData) : null,
                 userToken: userToken ? userToken : null
@@ -557,9 +652,9 @@ const Addproperty = () => {
     };
 
     const handleFormSubmission = async () => {
-        const isStepValid = validateStep(4); // Validate step 4 explicitly
+        const isStepValid = validateStep(4);
         if (isStepValid) {
-            await handleSubmit(); // Only call handleSubmit if validation passes
+            await handleSubmit();
         }
     };
 
@@ -570,38 +665,26 @@ const Addproperty = () => {
             if (!userData || !userToken) {
                 throw new Error("User is not authenticated. Token missing.");
             }
-
             const { id, user_type } = userData;
-
             const formData = new FormData();
-            // ✅ Append Step 1 Data
             Object.entries(step1Data).forEach(([key, value]) => { formData.append(key, value); });
-            // ✅ Append Step 2 Data
             Object.entries(step2Data).forEach(([key, value]) => { formData.append(key, value); });
-            // ✅ Append Step 3 Data
             Object.entries(step3Data).forEach(([key, value]) => { formData.append(key, value); });
-
-            // ✅ Append additional fields
             formData.append("bedroom", step3Data?.bedroom ?? "");
             formData.append("category", selectedCategory ?? "");
             formData.append("subcategory", selectedSubCategory ?? "");
             formData.append("propertyfor", selectedPropertyFor ?? "Sell");
             formData.append("landarea", `${landArea} ${selectedUnit}` ?? "");
-            // formData.append("status", selectedStatus ?? "");
             formData.append("roleid", id ?? "");
             formData.append("usertype", user_type ?? "");
             formData.append("amenities", JSON.stringify(amenities));
-            // formData.append("historydate", step2Data?.historydate ? JSON.stringify(step2Data.historydate) : "[]");
-
-            // ✅ Append Location Data
             formData.append("location", JSON.stringify({
                 Latitude: coordinates.latitude,
                 Longitude: coordinates.longitude,
             }));
-
             let thumbnailFileName = '';
             if (mainImage) {
-                const fileType = mainImage?.includes('.') ? mainImage.split('.').pop() : "jpg";  // Ensure there's an extension
+                const fileType = mainImage?.includes('.') ? mainImage.split('.').pop() : "jpg";
                 thumbnailFileName = `mainImage-thumbnail.${fileType}`;
                 formData.append("thumbnailImages", {
                     uri: mainImage,
@@ -609,14 +692,11 @@ const Addproperty = () => {
                     type: `image/${fileType}`
                 });
             }
-
-            // ✅ Append Gallery Images Correctly
             galleryImages.forEach((imageUri, index) => {
-                if (imageUri) { // Directly check string
+                if (imageUri) {
                     const fileType = imageUri.includes('.') ? imageUri.split('.').pop() : "jpeg";
-
                     formData.append(`galleryImages[${index}]`, {
-                        uri: imageUri, // ✅ Corrected
+                        uri: imageUri,
                         type: `image/${fileType}`,
                         name: `gallery-image-${index}.${fileType}`,
                     });
@@ -624,12 +704,8 @@ const Addproperty = () => {
                     console.warn("Skipping image due to missing URI.");
                 }
             });
-
-            // console.log("Uploading galleryImages", galleryImages);
-
-            // ✅ Append Videos as a Comma-Separated String
             videos.forEach((video, index) => {
-                if (video?.uri) {  // Check if video.uri exists
+                if (video?.uri) {
                     const fileType = video.uri.includes('.') ? video.uri.split('.').pop() : "mp4";
                     formData.append(`propertyvideos[${index}]`, {
                         uri: video.uri,
@@ -638,11 +714,8 @@ const Addproperty = () => {
                     });
                 }
             });
-            // console.log("Uploading videos", videos);
-
-            // ✅ Append Documents as a Comma-Separated String
             propertyDocuments.forEach((doc, index) => {
-                if (doc?.uri) {  // Check if doc.uri exists
+                if (doc?.uri) {
                     const fileType = doc.uri.includes('.') ? doc.uri.split('.').pop() : "pdf";
                     formData.append(`documents[${index}]`, {
                         uri: doc.uri,
@@ -651,17 +724,14 @@ const Addproperty = () => {
                     });
                 }
             });
-
             masterPlanDoc.forEach((doc, index) => {
-                if (doc?.uri) {  // Ensure the document has a valid URI
+                if (doc?.uri) {
                     const fileType = doc.uri.split('.').pop()?.toLowerCase() || "pdf";
                     const validFileTypes = ["pdf", "jpeg", "jpg"];
-
                     if (!validFileTypes.includes(fileType)) {
                         console.warn(`Invalid file type detected: ${fileType}`);
                         return;
                     }
-
                     formData.append("masterplandocument", {
                         uri: doc.uri,
                         type: fileType === "pdf" ? "application/pdf" : `image/${fileType}`,
@@ -669,13 +739,9 @@ const Addproperty = () => {
                     });
                 }
             });
-            // console.log("Uploading Master Plan Document:", masterPlanDoc);
-
-            // ✅ Prepare File Data Object & Append
             const safeFileName = (uri, defaultExt) => {
                 return uri && uri.includes('.') ? uri.split('.').pop() : defaultExt;
             };
-
             const fileData = {
                 galleryImages: galleryImages.map((image, index) => `gallery-image-${index}.${safeFileName(image.uri, "jpg")}`),
                 propertyvideos: videos.map((video, index) => `video-${index}.${safeFileName(video.uri, "mp4")}`),
@@ -684,17 +750,12 @@ const Addproperty = () => {
                 masterplandocument: masterPlanDoc.map((doc, index) => `masterplan-${index}.${safeFileName(doc.uri, "pdf")}`),
             };
             formData.append("fileData", JSON.stringify(fileData));
-            // console.log("Uploading FormData add property:", formData);
-
-            // Send API request
             const response = await axios.post("https://landsquire.in/api/insertlisting", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     "Authorization": `Bearer ${userToken}`,
                 },
             });
-
-            // console.log("API Response:", response.data);
             if (response.status === 200 && !response.data.error) {
                 setSheetMessage({
                     title: 'Success',
@@ -724,34 +785,41 @@ const Addproperty = () => {
         }
     };
 
-    // Reset Form Function
     const resetForm = () => {
         setStep1Data({
             property_name: '',
             description: '',
             nearbylocation: '',
-            approxrentalincome: '',
-            price: ''
         });
-
         setStep3Data({
-            amenities: '',
             bathroom: '',
             floor: '',
             city: '',
-            officeaddress: ''
+            officeaddress: '',
+            bedroom: ''
         });
-
-        // ✅ Instead of `null`, initialize step2Data with an empty object that includes `historydate`
-        setStep2Data({ historydate: [] });
-
+        setStep2Data({ historydate: [], approxrentalincome: '', price: '' });
         setSelectedCategory(null);
-        // setSelectedStatus("unpublished");
         setMainImage(null);
         setGalleryImages([]);
         setPropertyDocuments([]);
         setMasterPlanDoc([]);
         setVideos([]);
+        setCitySuggestions([]);
+        setLocationSuggestions([]);
+        setSearchTermCity('');
+        setSearchTermLocation('');
+        setFullAddress('');
+        setRegion({
+            latitude: 20.5937,
+            longitude: 78.9629,
+            latitudeDelta: 0.015,
+            longitudeDelta: 0.0121,
+        });
+        setCoordinates({
+            latitude: 20.5937,
+            longitude: 78.9629,
+        });
     };
 
     const updateFullAddress = async (latitude, longitude) => {
@@ -761,20 +829,21 @@ const Addproperty = () => {
             );
             if (response.data.results && response.data.results.length > 0) {
                 setFullAddress(response.data.results[0].formatted_address);
+                setSearchTermLocation(response.data.results[0].formatted_address);
             } else {
                 setFullAddress("Address not found");
+                setSearchTermLocation("Address not found");
             }
         } catch (error) {
             console.error("Error fetching address:", error);
             setFullAddress("Unable to retrieve address");
+            setSearchTermLocation("Unable to retrieve address");
         }
     };
 
-    // Utility function to format number in Indian style (e.g., 10,00,000)
     const formatIndianNumber = (number) => {
         if (!number) return '';
-        const numStr = number.toString().replace(/[^0-9]/g, ''); // Remove non-numeric characters
-        // If number is less than 1,000, no formatting needed
+        const numStr = number.toString().replace(/[^0-9]/g, '');
         if (numStr.length <= 3) return numStr;
         const lastThree = numStr.slice(-3);
         const otherNumbers = numStr.slice(0, -3);
@@ -782,117 +851,15 @@ const Addproperty = () => {
         return `${formattedOther},${lastThree}`;
     };
 
-
-    const handleSearch = (text) => {
-        setSearchTerm(text);
-        setStep3Data({ ...step3Data, city: text }); // Sync city with input
-        if (text.length > 2) {
-            fetchSuggestions(text);
-        } else {
-            setSuggestions([]);
-        }
-    };
-
-    const fetchSuggestions = async (input) => {
-        try {
-            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
-                params: {
-                    input,
-                    components: 'country:IN',
-                    types: '(cities)',
-                    key: GOOGLE_MAPS_API_KEY,
-                    sessiontoken: sessionToken,
-                },
-            });
-            // console.log('API Response:', response.data); // Debug the response
-            if (response.data.status === 'OK') {
-                setSuggestions(response.data.predictions);
-            } else {
-                setSuggestions([]);
-                setMessage({
-                    type: 'error',
-                    title: 'Error',
-                    text: response.data.error_message || 'Failed to fetch suggestions.',
-                });
-                console.error('API Error:', response.data.error_message);
-            }
-        } catch (error) {
-            console.error('Fetch Suggestions Error:', error);
-            setSuggestions([]);
-            setMessage({
-                type: 'error',
-                title: 'Error',
-                text: 'An unexpected error occurred during search.',
-            });
-        }
-    };
-
-    const handleSelect = async (placeId) => {
-        try {
-            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
-                params: {
-                    place_id: placeId,
-                    fields: 'address_components,formatted_address',
-                    key: GOOGLE_MAPS_API_KEY,
-                    sessiontoken: sessionToken,
-                },
-            });
-            // console.log('Place Details Response:', response.data); // Debug the response
-            if (response.data.status === 'OK') {
-                const components = response.data.result.address_components;
-                let selectedCity = '';
-                let selectedState = '';
-                components.forEach(comp => {
-                    if (comp.types.includes('locality') || comp.types.includes('sublocality')) {
-                        selectedCity = comp.long_name;
-                    }
-                    if (comp.types.includes('administrative_area_level_1')) {
-                        selectedState = comp.long_name;
-                    }
-                });
-                if (selectedCity) {
-                    setStep3Data({ ...step3Data, city: selectedCity });
-                    setSearchTerm(selectedCity);
-                    setSuggestions([]);
-                    setSessionToken(uuidv4()); // Reset session token after selection
-                } else {
-                    setMessage({
-                        type: 'error',
-                        title: 'Error',
-                        text: 'Could not extract city from selection.',
-                    });
-                }
-            } else {
-                setMessage({
-                    type: 'error',
-                    title: 'Error',
-                    text: response.data.error_message || 'Failed to fetch place details.',
-                });
-            }
-        } catch (error) {
-            console.error('Handle Select Error:', error);
-            setMessage({
-                type: 'error',
-                title: 'Error',
-                text: 'An unexpected error occurred during selection.',
-            });
-        }
-    };
-
     return (
         <View style={{ backgroundColor: '#fafafa', height: '100%', paddingHorizontal: 20 }}>
-
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={{ fontSize: 18, textAlign: 'center', fontFamily: 'Rubik-Bold', color: '#234F68' }}>
                     Add Property To Sell
                 </Text>
                 <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', backgroundColor: '#f4f2f7', borderRadius: 50, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
-                {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
-                    <Image source={icons.bell} className='size-6' />
-                </TouchableOpacity> */}
             </View>
 
             <View style={styles.container}>
@@ -910,6 +877,7 @@ const Addproperty = () => {
                                 <AntDesign name="home" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     placeholder="Enter property name"
                                     value={step1Data.property_name}
                                     onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
@@ -920,6 +888,7 @@ const Addproperty = () => {
                             <Text style={[styles.label, step1Errors.description && { color: 'red' }]}>Property Description</Text>
                             <TextInput
                                 style={styles.textarea}
+                                placeholderTextColor="#555"
                                 value={step1Data.description}
                                 onChangeText={text => setStep1Data({ ...step1Data, description: text })}
                                 maxLength={120}
@@ -928,7 +897,6 @@ const Addproperty = () => {
                                 numberOfLines={5}
                             />
                         </View>
-
                         <View style={styles.stepContent}>
                             <Text style={[styles.label, step1Errors.mainImage && { color: 'red' }]}>Property Thumbnail</Text>
                             <View className="flex-row items-center">
@@ -939,33 +907,7 @@ const Addproperty = () => {
                                 {mainImage && <Image source={{ uri: mainImage }} style={styles.image} />}
                             </View>
                         </View>
-
                         <View style={styles.stepContent}>
-                            {/* <Text style={[styles.label, step1Errors.purpose && { color: 'red' }]}>Select Purpose</Text>
-                            <View style={styles.categoryContainer}>
-                                {Array.isArray(propertyfor) &&
-                                    propertyfor.map((item, index) => (
-                                        <TouchableOpacity
-                                            key={index} // using index since your array doesn’t have `id`
-                                            style={[
-                                                styles.categoryButton,
-                                                selectedPropertyFor === item.value && styles.categoryButtonSelected,
-                                            ]}
-                                            onPress={() => setSelectedPropertyFor(item.value)}
-                                        >
-                                            <Text
-                                                style={[
-                                                    styles.categoryText,
-                                                    selectedPropertyFor === item.value && styles.categoryTextSelected,
-                                                ]}
-                                            >
-                                                {item.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                            </View> */}
-
-
                             <Text style={[styles.label, step1Errors.category && { color: 'red' }]}>Select Category</Text>
                             <View style={styles.categoryContainer}>
                                 {Array.isArray(categoryData) &&
@@ -978,7 +920,7 @@ const Addproperty = () => {
                                             ]}
                                             onPress={() => {
                                                 setSelectedCategory(category.label);
-                                                setSelectedSubCategory(null); // reset subcategory when category changes
+                                                setSelectedSubCategory(null);
                                             }}
                                         >
                                             <Text
@@ -992,8 +934,6 @@ const Addproperty = () => {
                                         </TouchableOpacity>
                                     ))}
                             </View>
-
-                            {/* Show subcategory only when category is selected */}
                             {selectedCategory && (
                                 <>
                                     <Text style={[styles.label, step1Errors.subcategory && { color: 'red' }]}>Select Sub Category</Text>
@@ -1024,14 +964,13 @@ const Addproperty = () => {
                                 </>
                             )}
                         </View>
-
-
                         <View style={styles.stepContent}>
                             <Text style={[styles.label, step1Errors.nearbylocation && { color: 'red' }]}>Near By Locations</Text>
                             <View style={styles.inputContainer}>
                                 <Ionicons name="trail-sign-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     placeholder="Enter near by locations..."
                                     value={step1Data.nearbylocation}
                                     onChangeText={text => setStep1Data({ ...step1Data, nearbylocation: text })}
@@ -1054,6 +993,7 @@ const Addproperty = () => {
                                 <Ionicons name="pricetag-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     keyboardType="numeric"
                                     placeholder="Enter approx rental income"
                                     value={formatIndianNumber(step2Data.approxrentalincome)}
@@ -1064,13 +1004,13 @@ const Addproperty = () => {
                                 />
                             </View>
                         </View>
-
                         <View style={styles.stepContent}>
                             <Text style={[styles.label, step2Errors.price && { color: 'red' }]}>Current Property Price</Text>
                             <View style={styles.inputContainer}>
                                 <FontAwesome name="rupee" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     keyboardType="numeric"
                                     placeholder="Enter current price"
                                     value={formatIndianNumber(step2Data.price)}
@@ -1081,87 +1021,6 @@ const Addproperty = () => {
                                 />
                             </View>
                         </View>
-
-                        {/* <View style={styles.stepContent}>
-                            <View className='flex-row justify-between items-center'>
-                                <View style={{ flex: 1, marginRight: 10 }}>
-                                    <Text style={[styles.label, step2Errors.historydate && { color: 'red' }]}>Historical Price</Text>
-                                    <View style={styles.inputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Historical Price"
-                                            value={formatIndianNumber(historyPrice)}
-                                            keyboardType="numeric"
-                                            onChangeText={text => {
-                                                const numericText = text.replace(/[^0-9]/g, '');
-                                                setHistoryPrice(numericText);
-                                            }}
-                                        />
-                                    </View>
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.label, step2Errors.historydate && { color: 'red' }]}>Historical Date</Text>
-                                    <View style={styles.inputContainer}>
-                                        <TouchableOpacity onPress={() => setShow(true)}>
-                                            <TextInput
-                                                style={styles.input}
-                                                placeholder="DD-MM-YYYY"
-                                                value={selectedDate}
-                                                editable={false}
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-                                    {show && (
-                                        <DateTimePicker
-                                            value={new Date()}
-                                            mode="date"
-                                            display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-                                            onChange={handleDateChange}
-                                        />
-                                    )}
-                                </View>
-                                <TouchableOpacity onPress={addPriceHistory}>
-                                    <Image source={icons.addicon} style={styles.addBtn} />
-                                </TouchableOpacity>
-                            </View>
-                            {step2Data.historydate.length > 0 && (
-                                <View style={{ flexGrow: 1, minHeight: 1, marginTop: 10 }}>
-                                    <FlatList
-                                        data={visibleData}
-                                        keyExtractor={(item, index) => index.toString()}
-                                        nestedScrollEnabled={true}
-                                        contentContainerStyle={{
-                                            flexGrow: 1,
-                                            borderWidth: 1,
-                                            borderColor: '#c7c7c7',
-                                            borderRadius: 10,
-                                        }}
-                                        ListHeaderComponent={
-                                            <Text className="text-center font-rubik-bold my-2 border-b border-gray-300">
-                                                Price Data for Graph
-                                            </Text>
-                                        }
-                                        renderItem={({ item, index }) => (
-                                            <View style={styles.tableRow}>
-                                                <Text style={styles.tableCell}>
-                                                    Rs. {parseInt(item.priceValue).toLocaleString()}
-                                                </Text>
-                                                <Text style={styles.tableCell}>{item.dateValue}</Text>
-                                                <TouchableOpacity onPress={() => removePriceHistory(index)}>
-                                                    <Text style={styles.removeBtn}>❌</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        )}
-                                    />
-                                    {currentIndex < step2Data.historydate.length && (
-                                        <TouchableOpacity onPress={loadMore} style={styles.addButton}>
-                                            <Text style={styles.addButtonText}>View More</Text>
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                            )}
-                        </View> */}
-
                     </ProgressStep>
 
                     <ProgressStep label="Details"
@@ -1182,6 +1041,7 @@ const Addproperty = () => {
                                         <MaterialIcons name="pool" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
+                                            placeholderTextColor="#555"
                                             placeholder="Enter to Add Amenities"
                                             value={amenity}
                                             onChangeText={setAmenity}
@@ -1193,7 +1053,7 @@ const Addproperty = () => {
                                     <Image source={icons.addicon} style={styles.addBtn} />
                                 </TouchableOpacity>
                             </View>
-                            <View style={{ flexDirection: "row", alignItems: "center", }}>
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
                                 <FlatList
                                     data={amenities}
                                     keyExtractor={(item, index) => index.toString()}
@@ -1220,21 +1080,21 @@ const Addproperty = () => {
                                         <Text style={[styles.label, step3Errors.floor && { color: 'red' }]}>Floor</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialCommunityIcons name="floor-plan" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
+                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
                                         </View>
                                     </View>
                                     <View style={{ flex: 1, marginRight: 5 }}>
                                         <Text style={[styles.label, step3Errors.bathroom && { color: 'red' }]}>Bathroom</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialCommunityIcons name="bathtub-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
+                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
                                         </View>
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text style={[styles.label, step3Errors.bedroom && { color: 'red' }]}>Bedroom</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialCommunityIcons name="bed-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
+                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
                                         </View>
                                     </View>
                                 </View>
@@ -1243,11 +1103,11 @@ const Addproperty = () => {
 
                         <View style={styles.stepContent}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <View style={{ flex: 1, }}>
+                                <View style={{ flex: 1 }}>
                                     <Text style={[styles.label, step3Errors.landArea && { color: 'red' }]}>Land Area</Text>
                                     <View style={styles.inputContainer}>
                                         <MaterialIcons name="zoom-out-map" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                        <TextInput style={styles.input} placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
+                                        <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
                                         <View style={styles.unitpickerContainer}>
                                             <RNPickerSelect
                                                 onValueChange={(value) => setSelectedUnit(value)}
@@ -1261,28 +1121,33 @@ const Addproperty = () => {
                                 </View>
                             </View>
                         </View>
+
                         <View style={styles.stepContent}>
-                            <View style={{ flex: 1, marginLeft: 5 }}>
-                                <Text style={[styles.label, step3Errors.city && { color: 'red' }]}>City</Text>
+                            <Text style={[styles.label, step3Errors.city && { color: 'red' }]}>City</Text>
+                            <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                                 <View style={styles.inputContainer}>
                                     <MaterialCommunityIcons name="city-variant-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                    <TextInput style={styles.input} placeholder="Enter City" onChangeText={handleSearch} value={step3Data.city} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor="#555"
+                                        placeholder="Enter City"
+                                        value={step3Data.city}
+                                        onChangeText={(text) => {
+                                            setStep3Data({ ...step3Data, city: text });
+                                            setSearchTermCity(text);
+                                            fetchCitySuggestions(text);
+                                        }}
+                                    />
                                 </View>
-                            </View>
-
-                            {message.text && (
-                                <View style={styles.errorContainer}>
-                                    <Text style={styles.errorText}>{message.title}: {message.text}</Text>
-                                </View>
-                            )}
-                            {suggestions.length > 0 && (
+                            </KeyboardAvoidingView>
+                            {citySuggestions.length > 0 && (
                                 <FlatList
-                                    data={suggestions}
+                                    data={citySuggestions}
                                     keyExtractor={(item) => item.place_id}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
                                             style={styles.suggestionItem}
-                                            onPress={() => handleSelect(item.place_id)}
+                                            onPress={() => handleCitySelect(item.place_id)}
                                         >
                                             <Text style={styles.suggestionText}>{item.description}</Text>
                                         </TouchableOpacity>
@@ -1290,11 +1155,13 @@ const Addproperty = () => {
                                     style={styles.suggestionsList}
                                 />
                             )}
+                        </View>
 
-
+                        <View style={styles.stepContent}>
                             <Text style={[styles.label, step3Errors.officeaddress && { color: 'red' }]}>Property Address</Text>
                             <TextInput
                                 style={styles.textarea}
+                                placeholderTextColor="#555"
                                 placeholder="Enter complete address"
                                 value={step3Data.officeaddress}
                                 onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })}
@@ -1303,27 +1170,44 @@ const Addproperty = () => {
                                 maxLength={120}
                             />
                         </View>
+
                         <View style={styles.stepContent}>
                             <Text style={[styles.label, step3Errors.fullAddress && { color: 'red' }]}>Find Location on Google Map</Text>
-                            <View style={styles.inputContainer}>
-                                <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                <GooglePlacesAutocomplete
-                                    placeholder="Locate your property"
-                                    fetchDetails={true}
-                                    onPress={handlePlaceSelect}
-                                    onFail={(error) => console.error("GooglePlacesAutocomplete Error:", error)}
-                                    query={{
-                                        key: GOOGLE_MAPS_API_KEY,
-                                        language: "en",
-                                    }}
-                                    styles={{
-                                        textInput: styles.mapTextInput,
-                                        container: { flex: 1, backgroundColor: "#f3f4f6", borderRadius: 15 },
-                                        listView: { backgroundColor: "#fff", borderRadius: 10, marginTop: 5 },
-                                    }}
-                                    debounce={400}
+                            <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+                                <View style={styles.inputContainer}>
+                                    <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.mapTextInput}
+                                        placeholder="Locate your property"
+                                        placeholderTextColor="#999"
+                                        value={searchTermLocation}
+                                        onChangeText={(text) => {
+                                            setSearchTermLocation(text);
+                                            fetchLocationSuggestions(text);
+                                        }}
+                                    />
+                                </View>
+                            </KeyboardAvoidingView>
+                            {locationSuggestions.length > 0 && (
+                                <FlatList
+                                    data={locationSuggestions}
+                                    keyExtractor={(item) => item.place_id}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={styles.suggestionItem}
+                                            onPress={() => handleLocationSelect(item.place_id)}
+                                        >
+                                            <Text style={styles.suggestionText}>{item.description}</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                    style={styles.suggestionsList}
                                 />
-                            </View>
+                            )}
+                            {message.text && (
+                                <View style={styles.errorContainer}>
+                                    <Text style={styles.errorText}>{message.title}: {message.text}</Text>
+                                </View>
+                            )}
                             <View>
                                 <Text className='text-base'>Location: {fullAddress || "Not available"}</Text>
                             </View>
@@ -1333,24 +1217,16 @@ const Addproperty = () => {
                             </Text>
                             <View>
                                 <MapView
-                                    style={{ height: 150, borderRadius: 10 }}
+                                    style={{ height: 350, borderRadius: 10 }}
                                     region={{
                                         latitude: region.latitude || 20.5937,
                                         longitude: region.longitude || 78.9629,
                                         latitudeDelta: region.latitudeDelta || 0.015,
                                         longitudeDelta: region.longitudeDelta || 0.0121,
                                     }}
+                                    mapType={'hybrid'}
                                     moveOnMarkerPress={false}
-                                    onPress={async (e) => {
-                                        const { latitude, longitude } = e.nativeEvent.coordinate;
-                                        setCoordinates({ latitude, longitude });
-                                        setRegion((prevRegion) => ({
-                                            ...prevRegion,
-                                            latitude,
-                                            longitude,
-                                        }));
-                                        await updateFullAddress(latitude, longitude);
-                                    }}
+                                    onPress={handleMapPress}
                                 >
                                     {(coordinates.latitude && coordinates.longitude) && (
                                         <Marker
@@ -1372,10 +1248,6 @@ const Addproperty = () => {
                                         />
                                     )}
                                 </MapView>
-                                {/* <View className='flex-col bg-primary-100 rounded-lg mt-2 p-2'>
-                                    <Text className='font-rubik-medium'>Latitude: {coordinates.latitude || "Not set"}</Text>
-                                    <Text className='font-rubik-medium'>Longitude: {coordinates.longitude || "Not set"}</Text>
-                                </View> */}
                             </View>
                         </View>
                     </ProgressStep>
@@ -1385,24 +1257,9 @@ const Addproperty = () => {
                         previousBtnText="Back"
                         nextBtnTextStyle={buttonNextTextStyle}
                         previousBtnTextStyle={buttonPreviousTextStyle}
-                        onSubmit={handleFormSubmission}>
-                        {/* select status */}
-                        {/* <View style={styles.stepContent}>
-                            <Text style={styles.label}>Select Status</Text>
-                            <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    onValueChange={(value) => setSelectedStatus(value)}
-                                    items={status}
-                                    value={selectedStatus} // ✅ Ensures the default value is selected
-                                    style={pickerSelectStyles}
-                                    placeholder={{ label: 'Choose an option...', value: null }}
-                                />
-                            </View>
-                        </View> */}
-
+                        onSubmit={handleFormSubmission}
+                    >
                         <View style={styles.stepContent}>
-
-                            {/* upload gallery */}
                             <Text style={[styles.label, step4Errors.galleryImages && { color: 'red' }]}>Property Gallery</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
                                 <FlatList
@@ -1415,7 +1272,6 @@ const Addproperty = () => {
                                         <View style={styles.thumbnailBox} className="border border-gray-300">
                                             <Image source={{ uri: item }} style={styles.thumbnail} />
                                             <Text className="text-center font-rubik-bold">Image: {index + 1}</Text>
-
                                             <TouchableOpacity
                                                 onPress={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
                                                 style={styles.deleteButton}
@@ -1431,8 +1287,6 @@ const Addproperty = () => {
                                 <Text style={{ textAlign: 'center' }}>Pick property images</Text>
                             </TouchableOpacity>
                         </View>
-
-                        {/* Upload video */}
                         <View style={[styles.label, step4Errors.videos && { color: 'red' }]}>
                             <Text style={styles.label}>Upload Videos</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
@@ -1449,7 +1303,6 @@ const Addproperty = () => {
                                                 style={styles.thumbnail}
                                             />
                                             <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
-
                                             <TouchableOpacity
                                                 onPress={() => setVideos(videos.filter((v) => v.id !== item.id))}
                                                 style={styles.deleteButton}
@@ -1460,15 +1313,11 @@ const Addproperty = () => {
                                     )}
                                 />
                             </View>
-
                             <TouchableOpacity onPress={() => openSourceModal('video')} style={styles.dropbox}>
                                 <FontAwesome name="file-video-o" size={24} color="#234F68" style={styles.inputIcon} />
                                 <Text style={{ textAlign: 'center' }}>Pick property videos</Text>
                             </TouchableOpacity>
-
                         </View>
-
-                        {/* upload doc */}
                         <View style={[styles.label, step4Errors.propertyDocuments && { color: 'red' }]}>
                             <Text style={styles.label}>Upload Property Documents</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
@@ -1482,7 +1331,6 @@ const Addproperty = () => {
                                         <View style={styles.thumbnailBox} className="border border-gray-300">
                                             <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
                                             <Text className="text-center font-rubik-bold">Doc {index + 1}</Text>
-
                                             <TouchableOpacity onPress={() => removeDocument(index)} style={styles.deleteButton}>
                                                 <Text className="text-white">X</Text>
                                             </TouchableOpacity>
@@ -1495,8 +1343,6 @@ const Addproperty = () => {
                                 <Text style={{ textAlign: 'center' }}>Pick property documents</Text>
                             </TouchableOpacity>
                         </View>
-
-                        {/* upload marster plan */}
                         <View style={styles.stepContent}>
                             <Text style={[styles.label, step4Errors.masterPlanDoc && { color: 'red' }]}>Upload Property Master Plan</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
@@ -1510,7 +1356,6 @@ const Addproperty = () => {
                                         <View style={styles.thumbnailBox} className="border border-gray-300">
                                             <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
                                             <Text className="text-center font-rubik-bold">Plan {index + 1}</Text>
-
                                             <TouchableOpacity onPress={() => removeMasterPlan(index)} style={styles.deleteButton}>
                                                 <Text className="text-white">X</Text>
                                             </TouchableOpacity>
@@ -1526,6 +1371,7 @@ const Addproperty = () => {
                     </ProgressStep>
                 </ProgressSteps>
             </View>
+
             {loading && (
                 <View className='absolute bottom-28 z-40 right-16'>
                     <ActivityIndicator />
@@ -1795,15 +1641,15 @@ const styles = StyleSheet.create({
     tableCell: {
         flex: 1,
         textAlign: 'center',
-        borderEnd: 1,
+        borderEndWidth: 1,
         borderColor: '#c7c7c7',
-        fontWeight: 600,
+        fontWeight: '600',
     },
     unitpickerContainer: {
         width: 110,
         borderRadius: 10,
         overflow: 'hidden',
-        backgroundColor: '# Conception: f3f4f6',
+        backgroundColor: '#f3f4f6',
     },
     pickerContainer: {
         borderRadius: 10,
@@ -1970,9 +1816,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Rubik-Medium',
         color: '#FFFFFF',
     },
-    suggestionsList: { backgroundColor: '#fff', borderRadius: moderateScale(10), maxHeight: verticalScale(200), width: '100%', marginBottom: verticalScale(10) },
+    suggestionsList: { backgroundColor: '#f4f2f7', borderRadius: moderateScale(10), maxHeight: verticalScale(200), width: '100%', marginBottom: verticalScale(10) },
     suggestionItem: { padding: moderateScale(10), borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    suggestionText: { fontFamily: 'Rubik-Regular', color: '#555', fontSize: scale(14) },
+    suggestionText: { fontFamily: 'Rubik-Regular', color: '#555', fontSize: scale(12) },
     errorContainer: {
         backgroundColor: '#FEE2E2',
         padding: 10,

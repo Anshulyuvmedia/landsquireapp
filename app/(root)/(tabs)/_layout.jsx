@@ -94,7 +94,7 @@ const TabsLayout = () => {
                     shadowOffset: { width: 0, height: -4 },
                     shadowOpacity: 0.2,
                     shadowRadius: 8,
-                    height: 50 + insets.bottom,
+                    height: 45 + insets.bottom,
                     paddingBottom: insets.bottom,
                     paddingTop: 20,
                     borderRadius: 25,

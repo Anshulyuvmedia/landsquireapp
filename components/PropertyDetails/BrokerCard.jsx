@@ -6,7 +6,7 @@ import images from "@/constants/images";
 const BrokerCard = ({ brokerData, handleCall, openWhatsApp, getProfileImageUri }) => {
     if (!brokerData) return null;
 
-    console.log('brokerdata', brokerData.profile, typeof brokerData.profile);
+    // console.log('brokerdata', brokerData.profile, typeof brokerData.profile);
     return (
         <View className="px-5 mt-4">
             <Text className="text-black-300 text-xl font-rubik-bold">Property Owner</Text>

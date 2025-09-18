@@ -2,7 +2,7 @@ import { View, Text, ScrollView } from "react-native";
 import { Ionicons, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 const PropertyDetailsSection = ({ propertyData, visitcount }) => {
-    console.log('visit count', visitcount);
+    // console.log('visit count', visitcount);
     return (
         <View className="px-5 mt-7 flex gap-2">
             <Text className="text-2xl font-rubik-medium capitalize">{propertyData.property_name}</Text>

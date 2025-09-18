@@ -6,12 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/images/applogo.png",
     "scheme": "landsquire",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#fafafa"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,7 +21,7 @@
       "package": "com.land.squire",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/applogo.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#fafafa"
       },
       "runtimeVersion": "1.0.0",
       "edgeToEdgeEnabled": true,
@@ -54,7 +54,7 @@
         {
           "image": "./assets/images/landsquire.png",
           "resizeMode": "cover",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#fafafa",
           "enableFullScreenImage_legacy": true
         }
       ],

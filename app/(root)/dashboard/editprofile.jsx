@@ -369,6 +369,7 @@ const EditProfile = () => {
                             <Ionicons name="person-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={username}
                                 onChangeText={setUsername}
                                 placeholder="Username"
@@ -381,6 +382,7 @@ const EditProfile = () => {
                             <Ionicons name="mail-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={email}
                                 onChangeText={setEmail}
                                 placeholder="Email Address"
@@ -397,6 +399,7 @@ const EditProfile = () => {
                             <Octicons name="device-mobile" size={20} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={phoneNumber}
                                 onChangeText={setPhoneNumber}
                                 placeholder="Phone Number"
@@ -412,6 +415,7 @@ const EditProfile = () => {
                             <Ionicons name="location-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={searchTerm}
                                 onChangeText={handleSearch}
                                 placeholder="City"
@@ -424,6 +428,7 @@ const EditProfile = () => {
                             <Ionicons name="map-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={state}
                                 placeholder="State"
                                 editable={false}
@@ -436,6 +441,7 @@ const EditProfile = () => {
                             <MaterialCommunityIcons name="bank-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={bankName}
                                 onChangeText={setBankName}
                                 placeholder="Bank Name"
@@ -448,6 +454,7 @@ const EditProfile = () => {
                             <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
+                                placeholderTextColor="#555"
                                 value={companyName}
                                 onChangeText={setCompanyName}
                                 placeholder="Company Name"

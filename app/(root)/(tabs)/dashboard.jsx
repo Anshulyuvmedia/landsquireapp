@@ -130,7 +130,7 @@ const Dashboard = () => {
   );
 
   return (
-    <View className="flex-1 bg-primary-100">
+    <View className="flex-1 bg-[#fafafa]">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: verticalScale(60), paddingHorizontal: scale(12) }}
@@ -232,7 +232,6 @@ const Dashboard = () => {
                   onPress={() => router.push('/CRM/crmportal')}
                 />
               )}
-
               <MenuItem
                 icon="notifications-none"
                 title={t('notifications')}

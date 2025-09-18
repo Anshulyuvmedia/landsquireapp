@@ -272,6 +272,7 @@ const Signin = () => {
             <Ionicons name="call-outline" size={moderateScale(20)} color="black" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
+              placeholderTextColor="#555"
               placeholder="Mobile Number"
               keyboardType="phone-pad"
               maxLength={10}
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   errorText: { backgroundColor: '#1e3a8a', color: 'white', padding: scale(10), borderRadius: moderateScale(5), marginBottom: verticalScale(10), width: '100%', textAlign: 'center' },
   inputContainer: { flexDirection: 'row', padding: scale(10), alignItems: 'center', backgroundColor: '#f5f4f8', borderWidth: 0, borderRadius: moderateScale(10), marginBottom: verticalScale(10), width: '100%' },
   inputIcon: { marginLeft: scale(10) },
-  input: { flex: 1, height: verticalScale(45), paddingHorizontal: scale(10) },
+  input: { flex: 1,  paddingHorizontal: scale(10) },
   loginButton: { backgroundColor: '#8BC83F', borderRadius: moderateScale(10), paddingVertical: verticalScale(14), alignItems: 'center', marginTop: verticalScale(10), width: '100%' },
   loginButtonText: { fontSize: moderateScale(18), fontFamily: 'Rubik-Medium', color: 'white' },
   bottomSheetContainer: {

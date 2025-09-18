@@ -244,6 +244,7 @@ const SignUp = () => {
                 <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { paddingLeft: 10 }]}
+                  placeholderTextColor="#555"
                   placeholder="Company Name"
                   value={companyName}
                   onChangeText={setCompanyName}
@@ -266,6 +267,7 @@ const SignUp = () => {
               <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { paddingLeft: 10 }]}
+                placeholderTextColor="#555"
                 placeholder="Bank Name"
                 value={bankName}
                 onChangeText={setBankName}
@@ -277,6 +279,7 @@ const SignUp = () => {
             <Ionicons name="person-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
+              placeholderTextColor="#555"
               placeholder="Your Full name"
               value={username}
               onChangeText={setUsername}
@@ -287,6 +290,7 @@ const SignUp = () => {
             <Octicons name="device-mobile" size={20} color="#1F4C6B" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
+              placeholderTextColor="#555"
               placeholder="Mobile No."
               keyboardType="number-pad"
               value={mobile}
@@ -299,6 +303,7 @@ const SignUp = () => {
               <Ionicons name="location-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
+                placeholderTextColor="#555"
                 placeholder="Search City"
                 value={searchTerm}
                 onChangeText={handleSearch}
@@ -308,6 +313,7 @@ const SignUp = () => {
               <Ionicons name="map-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
+                placeholderTextColor="#555"
                 placeholder="State"
                 value={state}
                 editable={false}
@@ -332,6 +338,7 @@ const SignUp = () => {
             <Ionicons name="mail-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
+              placeholderTextColor="#555"
               placeholder="Email"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -344,6 +351,7 @@ const SignUp = () => {
             <Ionicons name="lock-closed-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
+              placeholderTextColor="#555"
               placeholder="Create Password"
               secureTextEntry={!showPassword}
               value={password}

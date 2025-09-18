@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, ScrollView, TouchableOpacity, View, TextInput, FlatList, Modal, Platform, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity, View, TextInput, FlatList, Modal, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import icons from '@/constants/icons';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
@@ -9,7 +9,6 @@ import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView, { Marker } from "react-native-maps";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import Constants from "expo-constants";
 import 'react-native-get-random-values';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -20,9 +19,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const Editproperty = () => {
+    const [sessionTokenCity, setSessionTokenCity] = useState(uuidv4()); // Session token for city search
+    const [sessionTokenLocation, setSessionTokenLocation] = useState(uuidv4());
     const { id } = useLocalSearchParams();
     const navigation = useNavigation();
-    const [sessionToken, setSessionToken] = useState(uuidv4());
 
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
     const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '' });
@@ -53,8 +53,8 @@ const Editproperty = () => {
         longitudeDelta: 0.0121,
     });
     const [coordinates, setCoordinates] = useState({
-        latitude: "",
-        longitude: "",
+        latitude: 20.5937,
+        longitude: 78.9629,
     });
     const [fullAddress, setFullAddress] = useState("");
     const [errorField, setErrorField] = useState(null);
@@ -111,10 +111,11 @@ const Editproperty = () => {
 
     const [selectedSubCategory, setSelectedSubCategory] = useState('');
     const [selectedPropertyFor, setSelectedPropertyFor] = useState('');
-
-    const [suggestions, setSuggestions] = useState([]);
+    const [citySuggestions, setCitySuggestions] = useState([]); // Suggestions for city
+    const [locationSuggestions, setLocationSuggestions] = useState([]); // Suggestions for location
     const [message, setMessage] = useState({ type: '', title: '', text: '' });
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTermCity, setSearchTermCity] = useState('');
+    const [searchTermLocation, setSearchTermLocation] = useState('');
     // State for tracking invalid fields
     const [step1Errors, setStep1Errors] = useState({ property_name: false, description: false, nearbylocation: false });
     const [step2Errors, setStep2Errors] = useState({ approxrentalincome: false, historydate: false, price: false });
@@ -583,19 +584,182 @@ const Editproperty = () => {
         }
     };
 
+    const fetchCitySuggestions = async (input) => {
+        if (input.length <= 2) {
+            setCitySuggestions([]);
+            return;
+        }
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
+                params: {
+                    input,
+                    components: 'country:IN',
+                    types: '(cities)',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenCity,
+                },
+            });
+            if (response.data.status === 'OK') {
+                setCitySuggestions(response.data.predictions);
+            } else {
+                setCitySuggestions([]);
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch city suggestions.',
+                });
+            }
+        } catch (error) {
+            console.error('Fetch City Suggestions Error:', error);
+            setCitySuggestions([]);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during city search.',
+            });
+        }
+    };
+
+    const handleCitySelect = async (placeId) => {
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
+                params: {
+                    place_id: placeId,
+                    fields: 'address_components',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenCity,
+                },
+            });
+            if (response.data.status === 'OK') {
+                const components = response.data.result.address_components;
+                let selectedCity = '';
+                components.forEach(comp => {
+                    if (comp.types.includes('locality') || comp.types.includes('sublocality')) {
+                        selectedCity = comp.long_name;
+                    }
+                });
+                if (selectedCity) {
+                    setStep3Data({ ...step3Data, city: selectedCity });
+                    setSearchTermCity(selectedCity);
+                    setCitySuggestions([]);
+                    setSessionTokenCity(uuidv4());
+                } else {
+                    setMessage({
+                        type: 'error',
+                        title: 'Error',
+                        text: 'Could not extract city from selection.',
+                    });
+                }
+            } else {
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch city details.',
+                });
+            }
+        } catch (error) {
+            console.error('Handle City Select Error:', error);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during city selection.',
+            });
+        }
+    };
+
+    const fetchLocationSuggestions = async (input) => {
+        if (input.length <= 2) {
+            setLocationSuggestions([]);
+            return;
+        }
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
+                params: {
+                    input,
+                    components: 'country:IN',
+                    types: 'geocode',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenLocation,
+                },
+            });
+            if (response.data.status === 'OK') {
+                setLocationSuggestions(response.data.predictions);
+            } else {
+                setLocationSuggestions([]);
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch location suggestions.',
+                });
+            }
+        } catch (error) {
+            console.error('Fetch Location Suggestions Error:', error);
+            setLocationSuggestions([]);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during location search.',
+            });
+        }
+    };
+
+    const handleLocationSelect = async (placeId) => {
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
+                params: {
+                    place_id: placeId,
+                    fields: 'address_components,formatted_address,geometry',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenLocation,
+                },
+            });
+            if (response.data.status === 'OK') {
+                const { lat, lng } = response.data.result.geometry.location;
+                setFullAddress(response.data.result.formatted_address);
+                setRegion({
+                    latitude: lat,
+                    longitude: lng,
+                    latitudeDelta: 0.015,
+                    longitudeDelta: 0.0121,
+                });
+                setCoordinates({
+                    latitude: parseFloat(lat) ?? 0,
+                    longitude: parseFloat(lng) ?? 0,
+                });
+                setSearchTermLocation(response.data.result.formatted_address);
+                setLocationSuggestions([]);
+                setSessionTokenLocation(uuidv4());
+            } else {
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch location details.',
+                });
+            }
+        } catch (error) {
+            console.error('Handle Location Select Error:', error);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during location selection.',
+            });
+        }
+    };
+
     const handleMapPress = (e) => {
         if (!e?.nativeEvent?.coordinate) return;
         const { latitude, longitude } = e.nativeEvent.coordinate;
-        setRegion({
+        setCoordinates({
             latitude,
             longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
         });
-        setCoordinates({
-            latitude: parseFloat(latitude),
-            longitude: parseFloat(longitude),
-        });
+        setRegion((prev) => ({
+            ...prev,
+            latitude,
+            longitude,
+        }));
+        updateFullAddress(latitude, longitude);
+        setSearchTermLocation('');
     };
 
     const getUserData = async () => {
@@ -774,7 +938,7 @@ const Editproperty = () => {
 
     const fetchPropertyData = async () => {
         try {
-            const token = await AsyncStorage.getItem('userToken');  
+            const token = await AsyncStorage.getItem('userToken');
 
             setLoading(true);
             const response = await axios.get(`https://landsquire.in/api/property-details/${id}`, {
@@ -798,15 +962,16 @@ const Editproperty = () => {
                     historydate: apiData.historydate || '',
                     price: apiData.price || '',
                 });
-
+                // Update step3Data and searchTermCity
+                const city = apiData.city || '';
                 setStep3Data({
                     bathroom: apiData.bathroom || '',
                     bedroom: apiData.bedroom || '',
                     floor: apiData.floor || '',
-                    city: apiData.city || '',
+                    city: city || '',
                     officeaddress: apiData.address || '',
                 });
-
+                setSearchTermCity(city);
                 if (apiData.squarefoot) {
                     const [area, unit] = apiData.squarefoot.split(' ');
                     setLandArea(area || '');
@@ -1069,103 +1234,6 @@ const Editproperty = () => {
     };
 
 
-
-    const handleSearch = (text) => {
-        setSearchTerm(text);
-        setStep3Data({ ...step3Data, city: text }); // Sync city with input
-        if (text.length > 2) {
-            fetchSuggestions(text);
-        } else {
-            setSuggestions([]);
-        }
-    };
-
-    const fetchSuggestions = async (input) => {
-        try {
-            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
-                params: {
-                    input,
-                    components: 'country:IN',
-                    types: '(cities)',
-                    key: GOOGLE_MAPS_API_KEY,
-                    sessiontoken: sessionToken,
-                },
-            });
-            // console.log('API Response:', response.data); // Debug the response
-            if (response.data.status === 'OK') {
-                setSuggestions(response.data.predictions);
-            } else {
-                setSuggestions([]);
-                setMessage({
-                    type: 'error',
-                    title: 'Error',
-                    text: response.data.error_message || 'Failed to fetch suggestions.',
-                });
-                console.error('API Error:', response.data.error_message);
-            }
-        } catch (error) {
-            console.error('Fetch Suggestions Error:', error);
-            setSuggestions([]);
-            setMessage({
-                type: 'error',
-                title: 'Error',
-                text: 'An unexpected error occurred during search.',
-            });
-        }
-    };
-
-    const handleSelect = async (placeId) => {
-        try {
-            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
-                params: {
-                    place_id: placeId,
-                    fields: 'address_components,formatted_address',
-                    key: GOOGLE_MAPS_API_KEY,
-                    sessiontoken: sessionToken,
-                },
-            });
-            // console.log('Place Details Response:', response.data); // Debug the response
-            if (response.data.status === 'OK') {
-                const components = response.data.result.address_components;
-                let selectedCity = '';
-                let selectedState = '';
-                components.forEach(comp => {
-                    if (comp.types.includes('locality') || comp.types.includes('sublocality')) {
-                        selectedCity = comp.long_name;
-                    }
-                    if (comp.types.includes('administrative_area_level_1')) {
-                        selectedState = comp.long_name;
-                    }
-                });
-                if (selectedCity) {
-                    setStep3Data({ ...step3Data, city: selectedCity });
-                    setSearchTerm(selectedCity);
-                    setSuggestions([]);
-                    setSessionToken(uuidv4()); // Reset session token after selection
-                } else {
-                    setMessage({
-                        type: 'error',
-                        title: 'Error',
-                        text: 'Could not extract city from selection.',
-                    });
-                }
-            } else {
-                setMessage({
-                    type: 'error',
-                    title: 'Error',
-                    text: response.data.error_message || 'Failed to fetch place details.',
-                });
-            }
-        } catch (error) {
-            console.error('Handle Select Error:', error);
-            setMessage({
-                type: 'error',
-                title: 'Error',
-                text: 'An unexpected error occurred during selection.',
-            });
-        }
-    };
-
     return (
         <View style={{ backgroundColor: '#fafafa', height: '100%', paddingHorizontal: 20 }}>
             {/* Test button for debugging */}
@@ -1310,6 +1378,7 @@ const Editproperty = () => {
                                     <AntDesign name="home" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
+                                        placeholderTextColor="#555"
                                         placeholder="Enter property name"
                                         value={step1Data.property_name}
                                         onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
@@ -1320,6 +1389,7 @@ const Editproperty = () => {
                                 <Text style={[styles.label, step1Errors.description && { color: 'red' }]}>Property Description</Text>
                                 <TextInput
                                     style={styles.textarea}
+                                    placeholderTextColor="#555"
                                     value={step1Data.description}
                                     onChangeText={text => setStep1Data({ ...step1Data, description: text })}
                                     maxLength={120}
@@ -1432,6 +1502,7 @@ const Editproperty = () => {
                                     <Ionicons name="trail-sign-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
+                                        placeholderTextColor="#555"
                                         placeholder="Enter near by locations..."
                                         value={step1Data.nearbylocation}
                                         onChangeText={text => setStep1Data({ ...step1Data, nearbylocation: text })}
@@ -1454,6 +1525,7 @@ const Editproperty = () => {
                                     <Ionicons name="pricetag-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
+                                        placeholderTextColor="#555"
                                         keyboardType="numeric"
                                         placeholder="Enter approx rental income"
                                         value={formatIndianNumber(step2Data.approxrentalincome)}
@@ -1471,6 +1543,7 @@ const Editproperty = () => {
                                     <FontAwesome name="rupee" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
+                                        placeholderTextColor="#555"
                                         keyboardType="numeric"
                                         placeholder="Enter current price"
                                         value={formatIndianNumber(step2Data.price)}
@@ -1489,6 +1562,7 @@ const Editproperty = () => {
                                         <View style={styles.inputContainer}>
                                             <TextInput
                                                 style={styles.input}
+                                        placeholderTextColor="#555"
                                                 placeholder="Historical Price"
                                                 value={formatIndianNumber(historyPrice)}
                                                 keyboardType="numeric"
@@ -1505,6 +1579,7 @@ const Editproperty = () => {
                                             <TouchableOpacity onPress={() => setShow(true)}>
                                                 <TextInput
                                                     style={styles.input}
+                                        placeholderTextColor="#555"
                                                     placeholder="DD-MM-YYYY"
                                                     value={selectedDate}
                                                     editable={false}
@@ -1582,6 +1657,7 @@ const Editproperty = () => {
                                             <MaterialIcons name="pool" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                             <TextInput
                                                 style={styles.input}
+                                                placeholderTextColor="#555"
                                                 placeholder="Enter to Add Amenities"
                                                 value={amenity}
                                                 onChangeText={setAmenity}
@@ -1620,21 +1696,21 @@ const Editproperty = () => {
                                             <Text style={[styles.label, step3Errors.floor && { color: 'red' }]}>Floor</Text>
                                             <View style={styles.inputContainer}>
                                                 <MaterialCommunityIcons name="floor-plan" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                                <TextInput style={styles.input} placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
+                                                <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
                                             </View>
                                         </View>
                                         <View style={{ flex: 1, marginRight: 5 }}>
                                             <Text style={[styles.label, step3Errors.bathroom && { color: 'red' }]}>Bathroom</Text>
                                             <View style={styles.inputContainer}>
                                                 <MaterialCommunityIcons name="bathtub-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                                <TextInput style={styles.input} placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
+                                                <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
                                             </View>
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Text style={[styles.label, step3Errors.bedroom && { color: 'red' }]}>Bedroom</Text>
                                             <View style={styles.inputContainer}>
                                                 <MaterialCommunityIcons name="bed-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                                <TextInput style={styles.input} placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
+                                                <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
                                             </View>
                                         </View>
                                     </View>
@@ -1647,7 +1723,7 @@ const Editproperty = () => {
                                         <Text style={[styles.label, step3Errors.landArea && { color: 'red' }]}>Land Area</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialIcons name="zoom-out-map" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
+                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
                                             <View style={styles.unitpickerContainer}>
                                                 <RNPickerSelect
                                                     onValueChange={(value) => setSelectedUnit(value)}
@@ -1661,27 +1737,33 @@ const Editproperty = () => {
                                     </View>
                                 </View>
                             </View>
+
                             <View style={styles.stepContent}>
-                                <View style={{ flex: 1, marginLeft: 5 }}>
-                                    <Text style={[styles.label, step3Errors.city && { color: 'red' }]}>City</Text>
+                                <Text style={[styles.label, step3Errors.city && { color: 'red' }]}>City</Text>
+                                <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                                     <View style={styles.inputContainer}>
                                         <MaterialCommunityIcons name="city-variant-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                        <TextInput style={styles.input} placeholder="Enter City" onChangeText={handleSearch} value={step3Data.city} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholderTextColor="#555"
+                                            placeholder="Enter City"
+                                            value={step3Data.city}
+                                            onChangeText={(text) => {
+                                                setStep3Data({ ...step3Data, city: text });
+                                                setSearchTermCity(text);
+                                                fetchCitySuggestions(text);
+                                            }}
+                                        />
                                     </View>
-                                </View>
-                                {message.text && (
-                                    <View style={styles.errorContainer}>
-                                        <Text style={styles.errorText}>{message.title}: {message.text}</Text>
-                                    </View>
-                                )}
-                                {suggestions.length > 0 && (
+                                </KeyboardAvoidingView>
+                                {citySuggestions.length > 0 && (
                                     <FlatList
-                                        data={suggestions}
+                                        data={citySuggestions}
                                         keyExtractor={(item) => item.place_id}
                                         renderItem={({ item }) => (
                                             <TouchableOpacity
                                                 style={styles.suggestionItem}
-                                                onPress={() => handleSelect(item.place_id)}
+                                                onPress={() => handleCitySelect(item.place_id)}
                                             >
                                                 <Text style={styles.suggestionText}>{item.description}</Text>
                                             </TouchableOpacity>
@@ -1689,9 +1771,13 @@ const Editproperty = () => {
                                         style={styles.suggestionsList}
                                     />
                                 )}
+                            </View>
+
+                            <View style={styles.stepContent}>
                                 <Text style={[styles.label, step3Errors.officeaddress && { color: 'red' }]}>Property Address</Text>
                                 <TextInput
                                     style={styles.textarea}
+                                    placeholderTextColor="#555"
                                     placeholder="Enter complete address"
                                     value={step3Data.officeaddress}
                                     onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })}
@@ -1700,27 +1786,44 @@ const Editproperty = () => {
                                     maxLength={120}
                                 />
                             </View>
+
                             <View style={styles.stepContent}>
                                 <Text style={[styles.label, step3Errors.fullAddress && { color: 'red' }]}>Find Location on Google Map</Text>
-                                <View style={styles.inputContainer}>
-                                    <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                    <GooglePlacesAutocomplete
-                                        placeholder="Locate your property"
-                                        fetchDetails={true}
-                                        onPress={handlePlaceSelect}
-                                        onFail={(error) => console.error("GooglePlacesAutocomplete Error:", error)}
-                                        query={{
-                                            key: GOOGLE_MAPS_API_KEY,
-                                            language: "en",
-                                        }}
-                                        styles={{
-                                            textInput: styles.mapTextInput,
-                                            container: { flex: 1, backgroundColor: "#f3f4f6", borderRadius: 15 },
-                                            listView: { backgroundColor: "#fff", borderRadius: 10, marginTop: 5 },
-                                        }}
-                                        debounce={400}
+                                <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+                                    <View style={styles.inputContainer}>
+                                        <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.mapTextInput}
+                                            placeholder="Locate your property"
+                                            placeholderTextColor="#999"
+                                            value={searchTermLocation}
+                                            onChangeText={(text) => {
+                                                setSearchTermLocation(text);
+                                                fetchLocationSuggestions(text);
+                                            }}
+                                        />
+                                    </View>
+                                </KeyboardAvoidingView>
+                                {locationSuggestions.length > 0 && (
+                                    <FlatList
+                                        data={locationSuggestions}
+                                        keyExtractor={(item) => item.place_id}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                style={styles.suggestionItem}
+                                                onPress={() => handleLocationSelect(item.place_id)}
+                                            >
+                                                <Text style={styles.suggestionText}>{item.description}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                        style={styles.suggestionsList}
                                     />
-                                </View>
+                                )}
+                                {message.text && (
+                                    <View style={styles.errorContainer}>
+                                        <Text style={styles.errorText}>{message.title}: {message.text}</Text>
+                                    </View>
+                                )}
                                 <View>
                                     <Text className='text-base'>Location: {fullAddress || "Not available"}</Text>
                                 </View>
@@ -1730,24 +1833,16 @@ const Editproperty = () => {
                                 </Text>
                                 <View>
                                     <MapView
-                                        style={{ height: 150, borderRadius: 10 }}
+                                        style={{ height: 350, borderRadius: 10 }}
                                         region={{
                                             latitude: region.latitude || 20.5937,
                                             longitude: region.longitude || 78.9629,
                                             latitudeDelta: region.latitudeDelta || 0.015,
                                             longitudeDelta: region.longitudeDelta || 0.0121,
                                         }}
+                                        mapType={'hybrid'}
                                         moveOnMarkerPress={false}
-                                        onPress={async (e) => {
-                                            const { latitude, longitude } = e.nativeEvent.coordinate;
-                                            setCoordinates({ latitude, longitude });
-                                            setRegion((prevRegion) => ({
-                                                ...prevRegion,
-                                                latitude,
-                                                longitude,
-                                            }));
-                                            await updateFullAddress(latitude, longitude);
-                                        }}
+                                        onPress={handleMapPress}
                                     >
                                         {(coordinates.latitude && coordinates.longitude) && (
                                             <Marker
@@ -1769,10 +1864,6 @@ const Editproperty = () => {
                                             />
                                         )}
                                     </MapView>
-                                    {/* <View className='flex-col bg-primary-100 rounded-lg mt-2 p-2'>
-                                    <Text className='font-rubik-medium'>Latitude: {coordinates.latitude || "Not set"}</Text>
-                                    <Text className='font-rubik-medium'>Longitude: {coordinates.longitude || "Not set"}</Text>
-                                </View> */}
                                 </View>
                             </View>
                         </ProgressStep>
@@ -2551,9 +2642,9 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         textAlign: 'center',
     },
-    suggestionsList: { backgroundColor: '#fff', borderRadius: moderateScale(10), maxHeight: verticalScale(200), width: '100%', marginBottom: verticalScale(10) },
+    suggestionsList: { backgroundColor: '#f4f2f7', borderRadius: moderateScale(10), maxHeight: verticalScale(200), width: '100%', marginBottom: verticalScale(10) },
     suggestionItem: { padding: moderateScale(10), borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    suggestionText: { fontFamily: 'Rubik-Regular', color: '#555', fontSize: scale(14) },
+    suggestionText: { fontFamily: 'Rubik-Regular', color: '#555', fontSize: scale(12) },
     errorContainer: {
         backgroundColor: '#FEE2E2',
         padding: 10,

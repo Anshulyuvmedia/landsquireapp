@@ -616,7 +616,7 @@ const Mapview = () => {
         <Pressable style={styles.container} onPress={() => setShowSuggestions(false)}>
             {loading && (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#234F68" />
+                    <ActivityIndicator size="large" color="#fff" />
                     <Text style={styles.loadingText}>Loading data...</Text>
                 </View>
             )}
@@ -707,7 +707,7 @@ const Mapview = () => {
                 {visibleItems.map((item) => {
                     if (item.type === 'property') {
                         const coords = parseCoordinates(item.maplocations);
-                        {/* console.log('price', item.price, typeof item.price); */}
+                        {/* console.log('price', item.price, typeof item.price); */ }
                         const proptype = item.category
                         const price =
                             item.price != null && !isNaN(item.price)
@@ -720,6 +720,7 @@ const Mapview = () => {
                                 coordinate={coords}
                                 onPress={() => handleMarkerPress(item)}
                                 anchor={{ x: 0.5, y: 1 }}
+                            // tracksViewChanges={true}
                             >
                                 <View
                                     style={{
@@ -829,7 +830,7 @@ const Mapview = () => {
                     }, 500);
                 }}
             />
-        </Pressable >
+        </Pressable>
     );
 };
 
@@ -854,7 +855,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 20,
         paddingHorizontal: 15,
-        paddingVertical: 20,
+        paddingVertical: 10,
         shadowColor: 'green',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -986,11 +987,12 @@ const styles = StyleSheet.create({
         zIndex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+
     },
     loadingText: {
         marginTop: 10,
         fontSize: 16,
-        color: '#234F68',
+        color: '#fff',
     },
     locationContainer: {
         position: 'absolute',

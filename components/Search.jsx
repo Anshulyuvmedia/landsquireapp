@@ -156,7 +156,7 @@ const Search = () => {
     return (
         <View className="flex-1 bg-white">
             <TouchableOpacity onPress={() => refRBSheet.current?.open()}>
-                <View className="flex-row items-center justify-between w-full rounded-xl bg-[#f4f2f7] border border-primary-100 py-4 px-4">
+                <View className="flex-row items-center justify-between w-full rounded-xl bg-[#f4f2f7] border border-primary-100 py-2 px-4">
                     <View className="flex-row items-center flex-1">
                         <Ionicons name="search-outline" size={20} color="#1F2937" />
                         <TextInput

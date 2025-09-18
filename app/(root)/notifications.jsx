@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View, Image, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image, FlatList, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -100,7 +100,7 @@ export default RentScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: '#8bc83f',
+        backgroundColor: '#fafafa',
         // paddingHorizontal: scale(10),
     },
     header: {

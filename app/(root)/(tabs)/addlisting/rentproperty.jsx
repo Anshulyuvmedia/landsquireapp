@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View, TextInput, FlatList, Modal, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, TextInput, FlatList, Modal, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import icons from '@/constants/icons';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
@@ -6,9 +6,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MapView, { Marker } from "react-native-maps";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import Constants from "expo-constants";
+import MapView, { Marker } from 'react-native-maps';
+import Constants from 'expo-constants';
 import 'react-native-get-random-values';
 import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
@@ -17,20 +16,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const RentProperty = () => {
-    const [sessionToken, setSessionToken] = useState(uuidv4());
-    const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
+    const [sessionTokenCity, setSessionTokenCity] = useState(uuidv4());
+    const [sessionTokenLocation, setSessionTokenLocation] = useState(uuidv4());
+    const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY;
     const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '', price: '' });
     const [step3Data, setStep3Data] = useState({ bathroom: '', floor: '', city: '', officeaddress: '', bedroom: '' });
     const [isValid, setIsValid] = useState(false);
-
     const [errors, setErrors] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
-    // const [selectedStatus, setSelectedStatus] = useState("unpublished");
     const [mainImage, setMainImage] = useState(null);
-
     const [videos, setVideos] = useState([]);
     const [galleryImages, setGalleryImages] = useState([]);
-
     const [loading, setLoading] = useState(false);
     const [amenity, setAmenity] = useState('');
     const [amenities, setAmenities] = useState([]);
@@ -41,24 +37,27 @@ const RentProperty = () => {
         longitudeDelta: 0.0121,
     });
     const [coordinates, setCoordinates] = useState({
-        latitude: 20.5937, // Default to India's coordinates
+        latitude: 20.5937,
         longitude: 78.9629,
     });
-    const [fullAddress, setFullAddress] = useState("");
+    const [fullAddress, setFullAddress] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
-    const [modalType, setModalType] = useState(null); // 'mainImage', 'galleryImages', or 'video'
+    const [modalType, setModalType] = useState(null);
     const [categoryData, setCategoryData] = useState([]);
-    const [landArea, setLandArea] = useState("");
+    const [landArea, setLandArea] = useState('');
     const [selectedUnit, setSelectedUnit] = useState('sqft');
     const [selectedSubCategory, setSelectedSubCategory] = useState('');
     const [selectedPropertyFor, setSelectedPropertyFor] = useState('Rent');
-    const [suggestions, setSuggestions] = useState([]);
+    const [citySuggestions, setCitySuggestions] = useState([]);
+    const [locationSuggestions, setLocationSuggestions] = useState([]);
     const [message, setMessage] = useState({ type: '', title: '', text: '' });
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTermCity, setSearchTermCity] = useState('');
+    const [searchTermLocation, setSearchTermLocation] = useState('');
+
     // State for tracking invalid fields
     const [step1Errors, setStep1Errors] = useState({ property_name: false, mainImage: false, category: false, description: false, nearbylocation: false, price: false });
     const [step2Errors, setStep2Errors] = useState({ bathroom: false, floor: false, city: false, coordinates: false, officeaddress: false, bedroom: false });
-    const [step3Errors, setStep3Errors] = useState({ galleryImages: false, });
+    const [step3Errors, setStep3Errors] = useState({ galleryImages: false });
 
     // RBSheet ref
     const rbSheetRef = useRef();
@@ -108,7 +107,6 @@ const RentProperty = () => {
         color: 'white',
     };
 
-    // console.log('fullAddress', fullAddress);
     const validateStep = (step) => {
         let isValid = true;
         let message = '';
@@ -135,7 +133,7 @@ const RentProperty = () => {
                     newErrors.category ? 'Please select category.' : '',
                     newErrors.subcategory ? 'Please select sub category.' : '',
                     newErrors.price ? 'Please enter current property price.' : '',
-                    newErrors.nearbylocation ? 'Please enter atleast one landmarks.' : '',
+                    newErrors.nearbylocation ? 'Please enter at least one landmark.' : '',
                 ].filter(msg => msg).join('\n');
             }
         }
@@ -143,9 +141,6 @@ const RentProperty = () => {
         if (step === 2) {
             const newErrors = {
                 amenities: amenities.length < 1,
-                // floor: !step3Data?.floor,
-                // bathroom: !step3Data?.bathroom,
-                // bedroom: !step3Data?.bedroom,
                 city: !step3Data?.city,
                 officeaddress: !step3Data?.officeaddress,
                 landArea: !landArea,
@@ -157,13 +152,10 @@ const RentProperty = () => {
                 title = 'Step 2 Error';
                 message = [
                     newErrors.amenities ? 'Please enter amenities.' : '',
-                    // newErrors.floor ? 'Please enter no. of floors' : '',
-                    // newErrors.bathroom ? 'Please enter no. of bathroom.' : '',
-                    // newErrors.bedroom ? 'Please enter no. of bathroom.' : '',
                     newErrors.landArea ? 'Please enter land area.' : '',
                     newErrors.city ? 'Please enter city.' : '',
-                    newErrors.officeaddress ? 'Please enter Property address.' : '',
-                    newErrors.fullAddress ? 'Please enter location on map' : '',
+                    newErrors.officeaddress ? 'Please enter property address.' : '',
+                    newErrors.fullAddress ? 'Please enter location on map.' : '',
                 ].filter(msg => msg).join('\n');
             }
         }
@@ -172,18 +164,15 @@ const RentProperty = () => {
             const newErrors = {
                 galleryImages: galleryImages.length < 3,
             };
-
             setStep3Errors(newErrors);
-
             if (Object.values(newErrors).some(error => error)) {
                 isValid = false;
-                title = 'Step 4 Error';
+                title = 'Step 3 Error';
                 message = [
                     newErrors.galleryImages ? 'Please upload at least 3 gallery images.' : '',
                 ].filter(msg => msg).join('\n');
             }
         }
-
 
         if (!isValid) {
             setErrors(true);
@@ -195,7 +184,6 @@ const RentProperty = () => {
 
         return isValid;
     };
-
 
     const onNextStep = (step) => {
         if (!validateStep(step)) {
@@ -298,7 +286,7 @@ const RentProperty = () => {
 
     const pickVideo = async (source) => {
         setModalVisible(false);
-        const defaultThumbnail = typeof icons.videofile === "number" ? Image.resolveAssetSource(icons.videofile).uri : icons.videofile;
+        const defaultThumbnail = typeof icons.videofile === 'number' ? Image.resolveAssetSource(icons.videofile).uri : icons.videofile;
         if (source === 'camera') {
             if (!(await requestPermissions(true))) return;
             let result = await ImagePicker.launchCameraAsync({
@@ -333,19 +321,17 @@ const RentProperty = () => {
         }
     };
 
-
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://landsquire.in/api/get-categories`);
+            const response = await axios.get('https://landsquire.in/api/get-categories');
             if (response.data?.categories) {
                 setCategoryData(response.data.categories);
-                // console.log('categoryData', response.data.categories);
             } else {
-                console.error("Unexpected API response format:", response.data);
+                console.error('Unexpected API response format:', response.data);
             }
         } catch (error) {
-            console.error("Error fetching categories:", error);
+            console.error('Error fetching categories:', error);
         } finally {
             setLoading(false);
         }
@@ -355,258 +341,11 @@ const RentProperty = () => {
         fetchCategories();
     }, []);
 
-
-    const handlePlaceSelect = (data, details = null) => {
-        if (details?.geometry?.location) {
-            const { lat, lng } = details.geometry.location;
-            setFullAddress(details.formatted_address);
-            setRegion({
-                latitude: lat,
-                longitude: lng,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.0121,
-            });
-            setCoordinates({
-                latitude: parseFloat(lat) ?? 0,
-                longitude: parseFloat(lng) ?? 0,
-            });
+    const fetchCitySuggestions = async (input) => {
+        if (input.length <= 2) {
+            setCitySuggestions([]);
+            return;
         }
-    };
-
-    // Function to handle manual selection on the map
-    const handleMapPress = (e) => {
-        if (!e?.nativeEvent?.coordinate) return;
-
-        const { latitude, longitude } = e.nativeEvent.coordinate;
-
-        setCoordinates({
-            latitude,
-            longitude,
-        });
-
-        setRegion((prev) => ({
-            ...prev,
-            latitude,
-            longitude,
-        }));
-    };
-
-
-    const getUserData = async () => {
-        try {
-            const userData = await AsyncStorage.getItem('userData');
-            const userToken = await AsyncStorage.getItem('userToken');
-
-            return {
-                userData: userData ? JSON.parse(userData) : null,
-                userToken: userToken ? userToken : null
-            };
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-            setSheetMessage({
-                title: 'Error',
-                message: 'Could not retrieve user data.',
-                type: 'error',
-            });
-            rbSheetRef.current.open();
-            return null;
-        }
-    };
-
-    const handleFormSubmission = async () => {
-        const isStepValid = validateStep(3); // Validate step 4 explicitly
-        if (isStepValid) {
-            await handleSubmit(); // Only call handleSubmit if validation passes
-        }
-    };
-
-    const handleSubmit = async () => {
-        setLoading(true);
-        try {
-            const { userData, userToken } = await getUserData();
-            if (!userData || !userToken) {
-                throw new Error("User is not authenticated. Token missing.");
-            }
-
-            const { id, user_type } = userData;
-
-            const formData = new FormData();
-            // ✅ Append Step 1 Data
-            Object.entries(step1Data).forEach(([key, value]) => { formData.append(key, value); });
-            // ✅ Append Step 3 Data
-            Object.entries(step3Data).forEach(([key, value]) => { formData.append(key, value); });
-
-            // ✅ Append additional fields
-            formData.append("bedroom", step3Data?.bedroom ?? "");
-            formData.append("category", selectedCategory ?? "");
-            formData.append("subcategory", selectedSubCategory ?? "");
-            formData.append("propertyfor", selectedPropertyFor ?? "Rent");
-            formData.append("landarea", `${landArea} ${selectedUnit}` ?? "sqft");
-            // formData.append("status", selectedStatus ?? "");
-            formData.append("roleid", id ?? "");
-            formData.append("usertype", user_type ?? "");
-            formData.append("amenities", JSON.stringify(amenities));
-            formData.append("historydate", "[]");
-
-            // ✅ Append Location Data
-            formData.append("location", JSON.stringify({
-                Latitude: coordinates.latitude,
-                Longitude: coordinates.longitude,
-            }));
-
-            let thumbnailFileName = '';
-            if (mainImage) {
-                const fileType = mainImage?.includes('.') ? mainImage.split('.').pop() : "jpg";  // Ensure there's an extension
-                thumbnailFileName = `mainImage-thumbnail.${fileType}`;
-                formData.append("thumbnailImages", {
-                    uri: mainImage,
-                    name: thumbnailFileName,
-                    type: `image/${fileType}`
-                });
-            }
-
-            // ✅ Append Gallery Images Correctly
-            galleryImages.forEach((imageUri, index) => {
-                if (imageUri) { // Directly check string
-                    const fileType = imageUri.includes('.') ? imageUri.split('.').pop() : "jpeg";
-
-                    formData.append(`galleryImages[${index}]`, {
-                        uri: imageUri, // ✅ Corrected
-                        type: `image/${fileType}`,
-                        name: `gallery-image-${index}.${fileType}`,
-                    });
-                } else {
-                    console.warn("Skipping image due to missing URI.");
-                }
-            });
-
-            // ✅ Append Videos as a Comma-Separated String
-            videos.forEach((video, index) => {
-                if (video?.uri) {  // Check if video.uri exists
-                    const fileType = video.uri.includes('.') ? video.uri.split('.').pop() : "mp4";
-                    formData.append(`propertyvideos[${index}]`, {
-                        uri: video.uri,
-                        type: video.type || `video/${fileType}`,
-                        name: `video-${index}.${fileType}`,
-                    });
-                }
-            });
-
-            // ✅ Prepare File Data Object & Append
-            const safeFileName = (uri, defaultExt) => {
-                return uri && uri.includes('.') ? uri.split('.').pop() : defaultExt;
-            };
-
-            const fileData = {
-                galleryImages: galleryImages.map((image, index) => `gallery-image-${index}.${safeFileName(image.uri, "jpg")}`),
-                propertyvideos: videos.map((video, index) => `video-${index}.${safeFileName(video.uri, "mp4")}`),
-                thumbnailImages: thumbnailFileName ? [thumbnailFileName] : [],
-            };
-            formData.append("fileData", JSON.stringify(fileData));
-            console.log("Uploading FormData add property:", formData);
-
-            // Send API request
-            const response = await axios.post("https://landsquire.in/api/insertlisting", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${userToken}`,
-                },
-            });
-
-            console.log("API Response:", response.data);
-            if (response.status === 200 && !response.data.error) {
-                setSheetMessage({
-                    title: 'Success',
-                    message: 'Property added successfully!',
-                    type: 'success',
-                });
-                rbSheetRef.current.open();
-            } else {
-                console.error("Error", response.data.message || "Failed to add property.");
-                setSheetMessage({
-                    title: 'Error',
-                    message: 'Failed to add property.',
-                    type: 'error',
-                });
-                rbSheetRef.current.open();
-            }
-        } catch (error) {
-            console.error("API Error:", error?.response?.data || error);
-            setSheetMessage({
-                title: 'Error',
-                message: 'Something went wrong. Please try again.',
-                type: 'error',
-            });
-            rbSheetRef.current.open();
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Reset Form Function
-    const resetForm = () => {
-        setStep1Data({
-            property_name: '',
-            description: '',
-            nearbylocation: '',
-            approxrentalincome: '',
-            price: ''
-        });
-
-        setStep3Data({
-            amenities: '',
-            bathroom: '',
-            floor: '',
-            city: '',
-            officeaddress: ''
-        });
-
-        setSelectedCategory(null);
-        // setSelectedStatus("unpublished");
-        setMainImage(null);
-        setGalleryImages([]);
-        setVideos([]);
-    };
-
-    const updateFullAddress = async (latitude, longitude) => {
-        try {
-            const response = await axios.get(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
-            );
-            if (response.data.results && response.data.results.length > 0) {
-                setFullAddress(response.data.results[0].formatted_address);
-            } else {
-                setFullAddress("Address not found");
-            }
-        } catch (error) {
-            console.error("Error fetching address:", error);
-            setFullAddress("Unable to retrieve address");
-        }
-    };
-
-    // Utility function to format number in Indian style (e.g., 10,00,000)
-    const formatIndianNumber = (number) => {
-        if (!number) return '';
-        const numStr = number.toString().replace(/[^0-9]/g, ''); // Remove non-numeric characters
-        // If number is less than 1,000, no formatting needed
-        if (numStr.length <= 3) return numStr;
-        const lastThree = numStr.slice(-3);
-        const otherNumbers = numStr.slice(0, -3);
-        const formattedOther = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
-        return `${formattedOther},${lastThree}`;
-    };
-
-    const handleSearch = (text) => {
-        setSearchTerm(text);
-        setStep3Data({ ...step3Data, city: text }); // Sync city with input
-        if (text.length > 2) {
-            fetchSuggestions(text);
-        } else {
-            setSuggestions([]);
-        }
-    };
-
-    const fetchSuggestions = async (input) => {
         try {
             const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
                 params: {
@@ -614,60 +353,53 @@ const RentProperty = () => {
                     components: 'country:IN',
                     types: '(cities)',
                     key: GOOGLE_MAPS_API_KEY,
-                    sessiontoken: sessionToken,
+                    sessiontoken: sessionTokenCity,
                 },
             });
-            // console.log('API Response:', response.data); // Debug the response
             if (response.data.status === 'OK') {
-                setSuggestions(response.data.predictions);
+                setCitySuggestions(response.data.predictions);
             } else {
-                setSuggestions([]);
+                setCitySuggestions([]);
                 setMessage({
                     type: 'error',
                     title: 'Error',
-                    text: response.data.error_message || 'Failed to fetch suggestions.',
+                    text: response.data.error_message || 'Failed to fetch city suggestions.',
                 });
-                console.error('API Error:', response.data.error_message);
             }
         } catch (error) {
-            console.error('Fetch Suggestions Error:', error);
-            setSuggestions([]);
+            console.error('Fetch City Suggestions Error:', error);
+            setCitySuggestions([]);
             setMessage({
                 type: 'error',
                 title: 'Error',
-                text: 'An unexpected error occurred during search.',
+                text: 'An unexpected error occurred during city search.',
             });
         }
     };
 
-    const handleSelect = async (placeId) => {
+    const handleCitySelect = async (placeId) => {
         try {
             const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
                 params: {
                     place_id: placeId,
                     fields: 'address_components,formatted_address',
                     key: GOOGLE_MAPS_API_KEY,
-                    sessiontoken: sessionToken,
+                    sessiontoken: sessionTokenCity,
                 },
             });
-            // console.log('Place Details Response:', response.data); // Debug the response
             if (response.data.status === 'OK') {
                 const components = response.data.result.address_components;
                 let selectedCity = '';
-                let selectedState = '';
                 components.forEach(comp => {
                     if (comp.types.includes('locality') || comp.types.includes('sublocality')) {
                         selectedCity = comp.long_name;
                     }
-                    if (comp.types.includes('administrative_area_level_1')) {
-                        selectedState = comp.long_name;
-                    }
                 });
                 if (selectedCity) {
                     setStep3Data({ ...step3Data, city: selectedCity });
-                    setSearchTerm(selectedCity);
-                    setSuggestions([]);
-                    setSessionToken(uuidv4()); // Reset session token after selection
+                    setSearchTermCity(selectedCity);
+                    setCitySuggestions([]);
+                    setSessionTokenCity(uuidv4());
                 } else {
                     setMessage({
                         type: 'error',
@@ -683,20 +415,295 @@ const RentProperty = () => {
                 });
             }
         } catch (error) {
-            console.error('Handle Select Error:', error);
+            console.error('Handle City Select Error:', error);
             setMessage({
                 type: 'error',
                 title: 'Error',
-                text: 'An unexpected error occurred during selection.',
+                text: 'An unexpected error occurred during city selection.',
             });
         }
     };
 
+    const fetchLocationSuggestions = async (input) => {
+        if (input.length <= 2) {
+            setLocationSuggestions([]);
+            return;
+        }
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/autocomplete/json', {
+                params: {
+                    input,
+                    components: 'country:IN',
+                    types: 'geocode',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenLocation,
+                },
+            });
+            if (response.data.status === 'OK') {
+                setLocationSuggestions(response.data.predictions);
+            } else {
+                setLocationSuggestions([]);
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch location suggestions.',
+                });
+            }
+        } catch (error) {
+            console.error('Fetch Location Suggestions Error:', error);
+            setLocationSuggestions([]);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during location search.',
+            });
+        }
+    };
+
+    const handleLocationSelect = async (placeId) => {
+        try {
+            const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', {
+                params: {
+                    place_id: placeId,
+                    fields: 'address_components,formatted_address,geometry',
+                    key: GOOGLE_MAPS_API_KEY,
+                    sessiontoken: sessionTokenLocation,
+                },
+            });
+            if (response.data.status === 'OK') {
+                const { lat, lng } = response.data.result.geometry.location;
+                setFullAddress(response.data.result.formatted_address);
+                setRegion({
+                    latitude: lat,
+                    longitude: lng,
+                    latitudeDelta: 0.015,
+                    longitudeDelta: 0.0121,
+                });
+                setCoordinates({
+                    latitude: parseFloat(lat) ?? 0,
+                    longitude: parseFloat(lng) ?? 0,
+                });
+                setSearchTermLocation(response.data.result.formatted_address);
+                setLocationSuggestions([]);
+                setSessionTokenLocation(uuidv4());
+            } else {
+                setMessage({
+                    type: 'error',
+                    title: 'Error',
+                    text: response.data.error_message || 'Failed to fetch location details.',
+                });
+            }
+        } catch (error) {
+            console.error('Handle Location Select Error:', error);
+            setMessage({
+                type: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred during location selection.',
+            });
+        }
+    };
+
+    const handleMapPress = async (e) => {
+        if (!e?.nativeEvent?.coordinate) return;
+        const { latitude, longitude } = e.nativeEvent.coordinate;
+        setCoordinates({ latitude, longitude });
+        setRegion(prev => ({
+            ...prev,
+            latitude,
+            longitude,
+        }));
+        await updateFullAddress(latitude, longitude);
+    };
+
+    const getUserData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem('userData');
+            const userToken = await AsyncStorage.getItem('userToken');
+            return {
+                userData: userData ? JSON.parse(userData) : null,
+                userToken: userToken ? userToken : null,
+            };
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            setSheetMessage({
+                title: 'Error',
+                message: 'Could not retrieve user data.',
+                type: 'error',
+            });
+            rbSheetRef.current.open();
+            return null;
+        }
+    };
+
+    const handleFormSubmission = async () => {
+        const isStepValid = validateStep(3);
+        if (isStepValid) {
+            await handleSubmit();
+        }
+    };
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const { userData, userToken } = await getUserData();
+            if (!userData || !userToken) {
+                throw new Error('User is not authenticated. Token missing.');
+            }
+
+            const { id, user_type } = userData;
+
+            const formData = new FormData();
+            Object.entries(step1Data).forEach(([key, value]) => formData.append(key, value));
+            Object.entries(step3Data).forEach(([key, value]) => formData.append(key, value));
+            formData.append('bedroom', step3Data?.bedroom ?? '');
+            formData.append('category', selectedCategory ?? '');
+            formData.append('subcategory', selectedSubCategory ?? '');
+            formData.append('propertyfor', selectedPropertyFor ?? 'Rent');
+            formData.append('landarea', `${landArea} ${selectedUnit}` ?? 'sqft');
+            formData.append('roleid', id ?? '');
+            formData.append('usertype', user_type ?? '');
+            formData.append('amenities', JSON.stringify(amenities));
+            formData.append('historydate', '[]');
+            formData.append('location', JSON.stringify({
+                Latitude: coordinates.latitude,
+                Longitude: coordinates.longitude,
+            }));
+
+            let thumbnailFileName = '';
+            if (mainImage) {
+                const fileType = mainImage?.includes('.') ? mainImage.split('.').pop() : 'jpg';
+                thumbnailFileName = `mainImage-thumbnail.${fileType}`;
+                formData.append('thumbnailImages', {
+                    uri: mainImage,
+                    name: thumbnailFileName,
+                    type: `image/${fileType}`,
+                });
+            }
+
+            galleryImages.forEach((imageUri, index) => {
+                if (imageUri) {
+                    const fileType = imageUri.includes('.') ? imageUri.split('.').pop() : 'jpeg';
+                    formData.append(`galleryImages[${index}]`, {
+                        uri: imageUri,
+                        type: `image/${fileType}`,
+                        name: `gallery-image-${index}.${fileType}`,
+                    });
+                }
+            });
+
+            videos.forEach((video, index) => {
+                if (video?.uri) {
+                    const fileType = video.uri.includes('.') ? video.uri.split('.').pop() : 'mp4';
+                    formData.append(`propertyvideos[${index}]`, {
+                        uri: video.uri,
+                        type: `video/${fileType}`,
+                        name: `video-${index}.${fileType}`,
+                    });
+                }
+            });
+
+            const safeFileName = (uri, defaultExt) => {
+                return uri && uri.includes('.') ? uri.split('.').pop() : defaultExt;
+            };
+
+            const fileData = {
+                galleryImages: galleryImages.map((image, index) => `gallery-image-${index}.${safeFileName(image, 'jpg')}`),
+                propertyvideos: videos.map((video, index) => `video-${index}.${safeFileName(video.uri, 'mp4')}`),
+                thumbnailImages: thumbnailFileName ? [thumbnailFileName] : [],
+            };
+            formData.append('fileData', JSON.stringify(fileData));
+
+            const response = await axios.post('https://landsquire.in/api/insertlisting', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${userToken}`,
+                },
+            });
+
+            if (response.status === 200 && !response.data.error) {
+                setSheetMessage({
+                    title: 'Success',
+                    message: 'Property added successfully!',
+                    type: 'success',
+                });
+                rbSheetRef.current.open();
+            } else {
+                setSheetMessage({
+                    title: 'Error',
+                    message: response.data.message || 'Failed to add property.',
+                    type: 'error',
+                });
+                rbSheetRef.current.open();
+            }
+        } catch (error) {
+            console.error('API Error:', error?.response?.data || error);
+            setSheetMessage({
+                title: 'Error',
+                message: 'Something went wrong. Please try again.',
+                type: 'error',
+            });
+            rbSheetRef.current.open();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const resetForm = () => {
+        setStep1Data({
+            property_name: '',
+            description: '',
+            nearbylocation: '',
+            price: '',
+        });
+        setStep3Data({
+            bathroom: '',
+            floor: '',
+            city: '',
+            officeaddress: '',
+            bedroom: '',
+        });
+        setSelectedCategory(null);
+        setMainImage(null);
+        setGalleryImages([]);
+        setVideos([]);
+        setLandArea('');
+        setSelectedSubCategory('');
+        setAmenities([]);
+        setFullAddress('');
+        setSearchTermCity('');
+        setSearchTermLocation('');
+        setCitySuggestions([]);
+        setLocationSuggestions([]);
+    };
+
+    const updateFullAddress = async (latitude, longitude) => {
+        try {
+            const response = await axios.get(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+            );
+            if (response.data.results && response.data.results.length > 0) {
+                setFullAddress(response.data.results[0].formatted_address);
+            } else {
+                setFullAddress('Address not found');
+            }
+        } catch (error) {
+            console.error('Error fetching address:', error);
+            setFullAddress('Unable to retrieve address');
+        }
+    };
+
+    const formatIndianNumber = (number) => {
+        if (!number) return '';
+        const numStr = number.toString().replace(/[^0-9]/g, '');
+        if (numStr.length <= 3) return numStr;
+        const lastThree = numStr.slice(-3);
+        const otherNumbers = numStr.slice(0, -3);
+        const formattedOther = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+        return `${formattedOther},${lastThree}`;
+    };
 
     return (
         <View style={{ backgroundColor: '#fafafa', height: '100%', paddingHorizontal: 20 }}>
-
-
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={{ fontSize: 18, marginRight: 10, textAlign: 'center', fontFamily: 'Rubik-Bold', color: '#234F68' }}>
                     Add Property To Rent
@@ -704,14 +711,12 @@ const RentProperty = () => {
                 <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', backgroundColor: '#f4f2f7', borderRadius: 50, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                     <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
-                {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
-                    <Image source={icons.bell} className='size-6' />
-                </TouchableOpacity> */}
             </View>
 
             <View style={styles.container}>
                 <ProgressSteps>
-                    <ProgressStep label="General"
+                    <ProgressStep
+                        label="General"
                         nextBtnTextStyle={buttonNextTextStyle}
                         nextBtnText="Next"
                         previousBtnText="Back"
@@ -724,6 +729,7 @@ const RentProperty = () => {
                                 <AntDesign name="home" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     placeholder="Enter property name"
                                     value={step1Data.property_name}
                                     onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
@@ -735,6 +741,7 @@ const RentProperty = () => {
                             <Text style={[styles.label, step1Errors.description && { color: 'red' }]}>Property Description</Text>
                             <TextInput
                                 style={styles.textarea}
+                                placeholderTextColor="#555"
                                 value={step1Data.description}
                                 onChangeText={text => setStep1Data({ ...step1Data, description: text })}
                                 maxLength={120}
@@ -756,7 +763,6 @@ const RentProperty = () => {
                         </View>
 
                         <View style={styles.stepContent}>
-
                             <Text style={[styles.label, step1Errors.category && { color: 'red' }]}>Select Category</Text>
                             <View style={styles.categoryContainer}>
                                 {Array.isArray(categoryData) &&
@@ -769,7 +775,7 @@ const RentProperty = () => {
                                             ]}
                                             onPress={() => {
                                                 setSelectedCategory(category.label);
-                                                setSelectedSubCategory(null); // reset subcategory when category changes
+                                                setSelectedSubCategory(null);
                                             }}
                                         >
                                             <Text
@@ -784,7 +790,6 @@ const RentProperty = () => {
                                     ))}
                             </View>
 
-                            {/* Show subcategory only when category is selected */}
                             {selectedCategory && (
                                 <>
                                     <Text style={[styles.label, step1Errors.subcategory && { color: 'red' }]}>Select Sub Category</Text>
@@ -795,16 +800,14 @@ const RentProperty = () => {
                                                     key={subcategory.value}
                                                     style={[
                                                         styles.categoryButton,
-                                                        selectedSubCategory === subcategory.value &&
-                                                        styles.categoryButtonSelected,
+                                                        selectedSubCategory === subcategory.value && styles.categoryButtonSelected,
                                                     ]}
                                                     onPress={() => setSelectedSubCategory(subcategory.value)}
                                                 >
                                                     <Text
                                                         style={[
                                                             styles.categoryText,
-                                                            selectedSubCategory === subcategory.value &&
-                                                            styles.categoryTextSelected,
+                                                            selectedSubCategory === subcategory.value && styles.categoryTextSelected,
                                                         ]}
                                                     >
                                                         {subcategory.label}
@@ -822,6 +825,7 @@ const RentProperty = () => {
                                 <FontAwesome name="rupee" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     keyboardType="numeric"
                                     placeholder="Enter Rent price"
                                     value={formatIndianNumber(step1Data.price)}
@@ -839,6 +843,7 @@ const RentProperty = () => {
                                 <Ionicons name="trail-sign-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor="#555"
                                     placeholder="Enter near by locations..."
                                     value={step1Data.nearbylocation}
                                     onChangeText={text => setStep1Data({ ...step1Data, nearbylocation: text })}
@@ -847,7 +852,8 @@ const RentProperty = () => {
                         </View>
                     </ProgressStep>
 
-                    <ProgressStep label="Details"
+                    <ProgressStep
+                        label="Details"
                         nextBtnText="Next"
                         previousBtnText="Back"
                         nextBtnTextStyle={buttonNextTextStyle}
@@ -856,15 +862,16 @@ const RentProperty = () => {
                         errors={errors}
                     >
                         <View style={styles.stepContent}>
-                            <View className='flex flex-row items-center'>
+                            <View className="flex flex-row items-center">
                                 <Text style={[styles.label, step2Errors.amenities && { color: 'red' }]}>Features & Amenities</Text>
                             </View>
-                            <View className='flex flex-row align-center'>
-                                <View className='flex-grow'>
+                            <View className="flex flex-row align-center">
+                                <View className="flex-grow">
                                     <View style={styles.inputContainer}>
                                         <MaterialIcons name="pool" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
+                                            placeholderTextColor="#555"
                                             placeholder="Enter to Add Amenities"
                                             value={amenity}
                                             onChangeText={setAmenity}
@@ -876,14 +883,14 @@ const RentProperty = () => {
                                     <Image source={icons.addicon} style={styles.addBtn} />
                                 </TouchableOpacity>
                             </View>
-                            <View style={{ flexDirection: "row", alignItems: "center", }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <FlatList
                                     data={amenities}
                                     keyExtractor={(item, index) => index.toString()}
                                     horizontal
                                     nestedScrollEnabled
                                     showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={{ flexDirection: "row", alignItems: "center" }}
+                                    contentContainerStyle={{ flexDirection: 'row', alignItems: 'center' }}
                                     renderItem={({ item }) => (
                                         <View style={styles.amenityItem}>
                                             <Text className="font-rubik-bold px-2 capitalize text-nowrap text-green-600">{item}</Text>
@@ -903,21 +910,42 @@ const RentProperty = () => {
                                         <Text style={[styles.label, step2Errors.floor && { color: 'red' }]}>Floor</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialCommunityIcons name="floor-plan" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholderTextColor="#555"
+                                                placeholder="Floor"
+                                                keyboardType="numeric"
+                                                value={step3Data.floor}
+                                                onChangeText={text => setStep3Data({ ...step3Data, floor: text })}
+                                            />
                                         </View>
                                     </View>
                                     <View style={{ flex: 1, marginRight: 5 }}>
                                         <Text style={[styles.label, step2Errors.bathroom && { color: 'red' }]}>Bathroom</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialCommunityIcons name="bathtub-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholderTextColor="#555"
+                                                placeholder="Bathroom"
+                                                keyboardType="numeric"
+                                                value={step3Data.bathroom}
+                                                onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })}
+                                            />
                                         </View>
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Text style={[styles.label, step2Errors.bedroom && { color: 'red' }]}>Bedroom</Text>
                                         <View style={styles.inputContainer}>
                                             <MaterialCommunityIcons name="bed-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholderTextColor="#555"
+                                                placeholder="Bedrooms"
+                                                keyboardType="numeric"
+                                                value={step3Data.bedroom}
+                                                onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })}
+                                            />
                                         </View>
                                     </View>
                                 </View>
@@ -926,18 +954,25 @@ const RentProperty = () => {
 
                         <View style={styles.stepContent}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <View style={{ flex: 1, }}>
+                                <View style={{ flex: 1 }}>
                                     <Text style={[styles.label, step2Errors.landArea && { color: 'red' }]}>Land Area</Text>
                                     <View style={styles.inputContainer}>
                                         <MaterialIcons name="zoom-out-map" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                        <TextInput style={styles.input} placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholderTextColor="#555"
+                                            placeholder="Land area"
+                                            keyboardType="numeric"
+                                            value={landArea}
+                                            onChangeText={(value) => setLandArea(value)}
+                                        />
                                         <View style={styles.unitpickerContainer}>
                                             <RNPickerSelect
                                                 onValueChange={(value) => setSelectedUnit(value)}
                                                 items={units}
                                                 value={selectedUnit}
                                                 style={pickerSelectStyles}
-                                                placeholder={{ label: 'Choose an unit...' }}
+                                                placeholder={{ label: 'Choose a unit...' }}
                                             />
                                         </View>
                                     </View>
@@ -950,22 +985,27 @@ const RentProperty = () => {
                                 <Text style={[styles.label, step2Errors.city && { color: 'red' }]}>City</Text>
                                 <View style={styles.inputContainer}>
                                     <MaterialCommunityIcons name="city-variant-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                    <TextInput style={styles.input} placeholder="Enter City" onChangeText={handleSearch} value={step3Data.city} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor="#555"
+                                        placeholder="Enter City"
+                                        value={searchTermCity}
+                                        onChangeText={(text) => {
+                                            setStep3Data({ ...step3Data, city: text });
+                                            setSearchTermCity(text);
+                                            fetchCitySuggestions(text);
+                                        }}
+                                    />
                                 </View>
                             </View>
-                            {message.text && (
-                                <View style={styles.errorContainer}>
-                                    <Text style={styles.errorText}>{message.title}: {message.text}</Text>
-                                </View>
-                            )}
-                            {suggestions.length > 0 && (
+                            {citySuggestions.length > 0 && (
                                 <FlatList
-                                    data={suggestions}
+                                    data={citySuggestions}
                                     keyExtractor={(item) => item.place_id}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
                                             style={styles.suggestionItem}
-                                            onPress={() => handleSelect(item.place_id)}
+                                            onPress={() => handleCitySelect(item.place_id)}
                                         >
                                             <Text style={styles.suggestionText}>{item.description}</Text>
                                         </TouchableOpacity>
@@ -973,12 +1013,16 @@ const RentProperty = () => {
                                     style={styles.suggestionsList}
                                 />
                             )}
-
-
+                            {message.text && (
+                                <View style={styles.errorContainer}>
+                                    <Text style={styles.errorText}>{message.title}: {message.text}</Text>
+                                </View>
+                            )}
 
                             <Text style={[styles.label, step2Errors.officeaddress && { color: 'red' }]}>Property Address</Text>
                             <TextInput
                                 style={styles.textarea}
+                                placeholderTextColor="#555"
                                 placeholder="Enter complete address"
                                 value={step3Data.officeaddress}
                                 onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })}
@@ -990,35 +1034,51 @@ const RentProperty = () => {
 
                         <View style={styles.stepContent}>
                             <Text style={[styles.label, step2Errors.fullAddress && { color: 'red' }]}>Find Location on Google Map</Text>
-                            <View style={styles.inputContainer}>
-                                <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                <GooglePlacesAutocomplete
-                                    placeholder="Locate your property"
-                                    fetchDetails={true}
-                                    onPress={handlePlaceSelect}
-                                    onFail={(error) => console.error("GooglePlacesAutocomplete Error:", error)}
-                                    query={{
-                                        key: GOOGLE_MAPS_API_KEY,
-                                        language: "en",
-                                    }}
-                                    styles={{
-                                        textInput: styles.mapTextInput,
-                                        container: { flex: 1, backgroundColor: "#f3f4f6", borderRadius: 15 },
-                                        listView: { backgroundColor: "#fff", borderRadius: 10, marginTop: 5 },
-                                    }}
-                                    debounce={400}
+                            <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+                                <View style={styles.inputContainer}>
+                                    <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.mapTextInput}
+                                        placeholder="Locate your property"
+                                        placeholderTextColor="#999"
+                                        value={searchTermLocation}
+                                        onChangeText={(text) => {
+                                            setSearchTermLocation(text);
+                                            fetchLocationSuggestions(text);
+                                        }}
+                                    />
+                                </View>
+                            </KeyboardAvoidingView>
+                            {locationSuggestions.length > 0 && (
+                                <FlatList
+                                    data={locationSuggestions}
+                                    keyExtractor={(item) => item.place_id}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={styles.suggestionItem}
+                                            onPress={() => handleLocationSelect(item.place_id)}
+                                        >
+                                            <Text style={styles.suggestionText}>{item.description}</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                    style={styles.suggestionsList}
                                 />
-                            </View>
+                            )}
+                            {message.text && (
+                                <View style={styles.errorContainer}>
+                                    <Text style={styles.errorText}>{message.title}: {message.text}</Text>
+                                </View>
+                            )}
                             <View>
-                                <Text className='text-base'>Location: {fullAddress || "Not available"}</Text>
+                                <Text className="text-base">Location: {fullAddress || 'Not available'}</Text>
                             </View>
-                            <Text style={{ marginTop: 10, fontWeight: "bold" }}>Pin Location on Map</Text>
+                            <Text style={{ marginTop: 10, fontWeight: 'bold' }}>Pin Location on Map</Text>
                             <Text style={{ fontSize: 12, color: '#888', marginBottom: 5 }}>
                                 Tap on the map or drag the marker to set the property location.
                             </Text>
                             <View>
                                 <MapView
-                                    style={{ height: 150, borderRadius: 10 }}
+                                    style={{ height: 350, borderRadius: 10 }}
                                     region={{
                                         latitude: region.latitude || 20.5937,
                                         longitude: region.longitude || 78.9629,
@@ -1026,16 +1086,7 @@ const RentProperty = () => {
                                         longitudeDelta: region.longitudeDelta || 0.0121,
                                     }}
                                     moveOnMarkerPress={false}
-                                    onPress={async (e) => {
-                                        const { latitude, longitude } = e.nativeEvent.coordinate;
-                                        setCoordinates({ latitude, longitude });
-                                        setRegion((prevRegion) => ({
-                                            ...prevRegion,
-                                            latitude,
-                                            longitude,
-                                        }));
-                                        await updateFullAddress(latitude, longitude);
-                                    }}
+                                    onPress={handleMapPress}
                                 >
                                     {(coordinates.latitude && coordinates.longitude) && (
                                         <Marker
@@ -1044,50 +1095,23 @@ const RentProperty = () => {
                                                 longitude: parseFloat(coordinates.longitude),
                                             }}
                                             draggable
-                                            onDragEnd={async (e) => {
-                                                const { latitude, longitude } = e.nativeEvent.coordinate;
-                                                setCoordinates({ latitude, longitude });
-                                                setRegion((prevRegion) => ({
-                                                    ...prevRegion,
-                                                    latitude,
-                                                    longitude,
-                                                }));
-                                                await updateFullAddress(latitude, longitude);
-                                            }}
+                                            onDragEnd={handleMapPress}
                                         />
                                     )}
                                 </MapView>
-                                {/* <View className='flex-col bg-primary-100 rounded-lg mt-2 p-2'>
-                                    <Text className='font-rubik-medium'>Latitude: {coordinates.latitude || "Not set"}</Text>
-                                    <Text className='font-rubik-medium'>Longitude: {coordinates.longitude || "Not set"}</Text>
-                                </View> */}
                             </View>
                         </View>
                     </ProgressStep>
 
-                    <ProgressStep label="Files"
+                    <ProgressStep
+                        label="Files"
                         finishBtnText="Save"
                         previousBtnText="Back"
                         nextBtnTextStyle={buttonNextTextStyle}
                         previousBtnTextStyle={buttonPreviousTextStyle}
-                        onSubmit={handleFormSubmission}>
-                        {/* select status */}
-                        {/* <View style={styles.stepContent}>
-                            <Text style={styles.label}>Select Status</Text>
-                            <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    onValueChange={(value) => setSelectedStatus(value)}
-                                    items={status}
-                                    value={selectedStatus} // ✅ Ensures the default value is selected
-                                    style={pickerSelectStyles}
-                                    placeholder={{ label: 'Choose an option...', value: null }}
-                                />
-                            </View>
-                        </View> */}
-
+                        onSubmit={handleFormSubmission}
+                    >
                         <View style={styles.stepContent}>
-
-                            {/* upload gallery */}
                             <Text style={[styles.label, step3Errors.galleryImages && { color: 'red' }]}>Property Gallery</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
                                 <FlatList
@@ -1100,7 +1124,6 @@ const RentProperty = () => {
                                         <View style={styles.thumbnailBox} className="border border-gray-300">
                                             <Image source={{ uri: item }} style={styles.thumbnail} />
                                             <Text className="text-center font-rubik-bold">Image: {index + 1}</Text>
-
                                             <TouchableOpacity
                                                 onPress={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
                                                 style={styles.deleteButton}
@@ -1117,8 +1140,7 @@ const RentProperty = () => {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Upload video */}
-                        <View style={[styles.label, step3Errors.videos && { color: 'red' }]}>
+                        <View style={styles.stepContent}>
                             <Text style={styles.label}>Upload Videos</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
                                 <FlatList
@@ -1134,7 +1156,6 @@ const RentProperty = () => {
                                                 style={styles.thumbnail}
                                             />
                                             <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
-
                                             <TouchableOpacity
                                                 onPress={() => setVideos(videos.filter((v) => v.id !== item.id))}
                                                 style={styles.deleteButton}
@@ -1145,19 +1166,17 @@ const RentProperty = () => {
                                     )}
                                 />
                             </View>
-
                             <TouchableOpacity onPress={() => openSourceModal('video')} style={styles.dropbox}>
                                 <FontAwesome name="file-video-o" size={24} color="#234F68" style={styles.inputIcon} />
                                 <Text style={{ textAlign: 'center' }}>Pick property videos</Text>
                             </TouchableOpacity>
                         </View>
-
                     </ProgressStep>
-
                 </ProgressSteps>
             </View>
+
             {loading && (
-                <View className='absolute bottom-28 z-40 right-16'>
+                <View className="absolute bottom-28 z-40 right-16">
                     <ActivityIndicator />
                 </View>
             )}
@@ -1272,10 +1291,10 @@ const RentProperty = () => {
                 </View>
             </RBSheet>
         </View>
-    )
-}
+    );
+};
 
-export default RentProperty
+export default RentProperty;
 
 const styles = StyleSheet.create({
     container: {
@@ -1362,7 +1381,7 @@ const styles = StyleSheet.create({
     mapTextInput: {
         width: '100%',
         height: 50,
-        backgroundColor: "#f3f4f6",
+        backgroundColor: '#f3f4f6',
     },
     textarea: {
         textAlignVertical: 'top',
@@ -1405,41 +1424,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
-    },
-    addButton: {
-        backgroundColor: '#234F68',
-        padding: 10,
-        marginTop: 10,
-        borderRadius: 5,
-    },
-    addButtonText: {
-        color: 'white',
-        textAlign: 'center',
-        fontWeight: 'bold',
-    },
-    tableRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-    },
-    tableCell: {
-        flex: 1,
-        textAlign: 'center',
-        borderEnd: 1,
-        borderColor: '#c7c7c7',
-        fontWeight: 600,
-    },
-    unitpickerContainer: {
-        width: 110,
-        borderRadius: 10,
-        overflow: 'hidden',
-        backgroundColor: '# Conception: f3f4f6',
-    },
-    pickerContainer: {
-        borderRadius: 10,
-        overflow: 'hidden',
-        backgroundColor: '#f3f4f6',
-        marginTop: 10,
     },
     categoryContainer: {
         flexDirection: 'row',
@@ -1600,9 +1584,23 @@ const styles = StyleSheet.create({
         fontFamily: 'Rubik-Medium',
         color: '#FFFFFF',
     },
-    suggestionsList: { backgroundColor: '#fff', borderRadius: moderateScale(10), maxHeight: verticalScale(200), width: '100%', marginBottom: verticalScale(10) },
-    suggestionItem: { padding: moderateScale(10), borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    suggestionText: { fontFamily: 'Rubik-Regular', color: '#555', fontSize: scale(14) },
+    suggestionsList: {
+        backgroundColor: '#f4f2f7',
+        borderRadius: moderateScale(10),
+        maxHeight: verticalScale(200),
+        width: '100%',
+        marginBottom: verticalScale(10),
+    },
+    suggestionItem: {
+        padding: moderateScale(10),
+        borderBottomWidth: 1,
+        borderBottomColor: '#f3f4f6',
+    },
+    suggestionText: {
+        fontFamily: 'Rubik-Regular',
+        color: '#555',
+        fontSize: scale(12),
+    },
     errorContainer: {
         backgroundColor: '#FEE2E2',
         padding: 10,
