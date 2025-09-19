@@ -18,10 +18,11 @@ import * as WebBrowser from "expo-web-browser";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
-
+import { useUser } from '../../context/UserContext';
 WebBrowser.maybeCompleteAuthSession();
 
 const Signin = () => {
+  const { updateUser } = useUser();
   const [mobileNumber, setMobileNumber] = useState('');
   const [otpShow, setOtpShow] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -136,7 +137,8 @@ const Signin = () => {
         const storedToken = await AsyncStorage.getItem('userToken');
         const storedUserData = await AsyncStorage.getItem('userData');
         // console.log('token sigin', storedToken);
-
+        // Update context with user data and token
+        await updateUser(user, token);
         if (storedToken && storedUserData) {
           otpSheetRef.current?.close();
           const userObj = JSON.parse(storedUserData);
@@ -359,8 +361,8 @@ export default Signin;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fafafa', alignItems: 'center', justifyContent: 'center' },
   scrollContainer: { flexGrow: 1, alignItems: 'center', justifyContent: 'space-between', paddingBottom: verticalScale(20) },
-  backgroundImage: { width: '100%', height: verticalScale(150) },
-  applogo: { width: scale(150), height: scale(150), borderRadius: moderateScale(10750) },
+  backgroundImage: { width: '100%', height: verticalScale(100) },
+  applogo: { width: scale(100), height: scale(100), borderRadius: moderateScale(100) },
   formContainer: { paddingHorizontal: scale(20), width: '100%', alignItems: 'center' },
   title: { fontSize: moderateScale(24), textAlign: 'center', fontFamily: 'Rubik-Bold', color: '#333', marginTop: verticalScale(20) },
   highlight: { color: '#1F4C6B', fontFamily: 'Rubik-Bold' },
@@ -368,7 +370,7 @@ const styles = StyleSheet.create({
   errorText: { backgroundColor: '#1e3a8a', color: 'white', padding: scale(10), borderRadius: moderateScale(5), marginBottom: verticalScale(10), width: '100%', textAlign: 'center' },
   inputContainer: { flexDirection: 'row', padding: scale(10), alignItems: 'center', backgroundColor: '#f5f4f8', borderWidth: 0, borderRadius: moderateScale(10), marginBottom: verticalScale(10), width: '100%' },
   inputIcon: { marginLeft: scale(10) },
-  input: { flex: 1,  paddingHorizontal: scale(10) },
+  input: { flex: 1, paddingHorizontal: scale(10) },
   loginButton: { backgroundColor: '#8BC83F', borderRadius: moderateScale(10), paddingVertical: verticalScale(14), alignItems: 'center', marginTop: verticalScale(10), width: '100%' },
   loginButtonText: { fontSize: moderateScale(18), fontFamily: 'Rubik-Medium', color: 'white' },
   bottomSheetContainer: {

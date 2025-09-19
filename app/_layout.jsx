@@ -31,7 +31,7 @@ export default function RootLayout() {
     useEffect(() => {
         const checkAuthSession = async () => {
             try {
-                console.log('RootLayout: Starting auth check');
+                // console.log('RootLayout: Starting auth check');
                 await SplashScreen.preventAutoHideAsync();
 
                 if (fontsLoaded || error) {
@@ -41,7 +41,7 @@ export default function RootLayout() {
 
                     const savedLanguage = await AsyncStorage.getItem('appLanguage');
                     if (savedLanguage) {
-                        console.log('RootLayout: Setting language:', savedLanguage);
+                        // console.log('RootLayout: Setting language:', savedLanguage);
                         await i18n.changeLanguage(savedLanguage);
                     }
 
@@ -50,12 +50,12 @@ export default function RootLayout() {
                     const parsedUserData = userData ? JSON.parse(userData) : null;
 
                     if (!token || !parsedUserData?.id) {
-                        console.log('RootLayout: No token or user ID, clearing storage');
+                        // console.log('RootLayout: No token or user ID, clearing storage');
                         await AsyncStorage.removeItem('userData');
                         await AsyncStorage.removeItem('userToken');
                         setIsAuthenticated(false);
                     } else {
-                        console.log('RootLayout: User authenticated');
+                        // console.log('RootLayout: User authenticated');
                         setIsAuthenticated(true);
                     }
                 }
@@ -63,7 +63,7 @@ export default function RootLayout() {
                 console.error('RootLayout: Error during auth check:', error);
                 setIsAuthenticated(false);
             } finally {
-                console.log('RootLayout: App is ready');
+                // console.log('RootLayout: App is ready');
                 setAppIsReady(true);
                 await SplashScreen.hideAsync();
             }
@@ -74,11 +74,12 @@ export default function RootLayout() {
 
     useEffect(() => {
         if (appIsReady && isAuthenticated !== null && rootNavigation?.isReady()) {
-            console.log('RootLayout: Navigation ready, navigating to:', isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
+            // console.log('RootLayout: Navigation ready, navigating to:', isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
             router.replace(isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
         } else {
-            console.log('RootLayout: Navigation not ready or app not initialized');
+            // console.log('RootLayout: Navigation not ready or app not initialized');
         }
+        SystemUI.setBackgroundColorAsync('#fafafa');
     }, [appIsReady, isAuthenticated, rootNavigation]);
 
     return (

@@ -41,9 +41,9 @@ const EditProfile = () => {
     const navigation = useNavigation();
 
     const fetchProfileData = async () => {
-        console.log('EditProfile: fetchProfileData started');
+        // console.log('EditProfile: fetchProfileData started');
         if (contextUserData) {
-            console.log('EditProfile: Using cached userData from context');
+            // console.log('EditProfile: Using cached userData from context');
             setUserId(contextUserData.id);
             setUsername(contextUserData.username);
             setUsertype(contextUserData.user_type);
@@ -77,7 +77,7 @@ const EditProfile = () => {
             const userData = await AsyncStorage.getItem('userData');
             const parsedUserData = userData ? JSON.parse(userData) : null;
             if (!parsedUserData || !parsedUserData.id) {
-                console.log('EditProfile: No valid user data, skipping fetch');
+                // console.log('EditProfile: No valid user data, skipping fetch');
                 setLoading(false);
                 return;
             }
@@ -385,10 +385,10 @@ const EditProfile = () => {
 
     const handleBack = () => {
         if (navigation.canGoBack()) {
-            console.log('EditProfile: Navigating back');
+            // console.log('EditProfile: Navigating back');
             navigation.goBack();
         } else {
-            console.log('EditProfile: Cannot go back, navigating to dashboard');
+            // console.log('EditProfile: Cannot go back, navigating to dashboard');
             router.navigate('/(root)/(tabs)/dashboard');
         }
     };
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
         color: 'white',
     },
     suggestionsList: {
-        backgroundColor: '#fff',
+        backgroundColor: '#f4f2f7',
         borderRadius: moderateScale(10),
         maxHeight: verticalScale(200),
         width: '100%',
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
     suggestionText: {
         fontFamily: 'Rubik-Regular',
         color: '#555',
-        fontSize: scale(14),
+        fontSize: scale(12),
     },
     errorContainer: {
         backgroundColor: '#FEE2E2',

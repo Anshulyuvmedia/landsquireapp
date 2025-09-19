@@ -9,6 +9,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Utility function to format amount in lakhs/crores
 const formatINR = (amount) => {
@@ -24,6 +25,7 @@ const formatINR = (amount) => {
 };
 
 const LeadDetail = () => {
+    const insets = useSafeAreaInsets();
     const { t, i18n } = useTranslation();
     const { id } = useLocalSearchParams();
     const router = useRouter();
@@ -394,7 +396,7 @@ const LeadDetail = () => {
                                 </Text>
                             )}
                         </ScrollView>
-                        <View style={styles.modalButtons}>
+                        <View style={[styles.modalButtons, { marginBottom: insets.bottom }]}>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.cancelButton]}
                                 onPress={() => setShowMessageModal(false)}
@@ -442,7 +444,7 @@ const LeadDetail = () => {
                             onChangeText={setNewNoteDescription}
                             multiline
                         />
-                        <View style={styles.modalButtons}>
+                        <View style={[styles.modalButtons , { marginBottom: insets.bottom }]}>
 
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.cancelButton]}

@@ -105,7 +105,7 @@ const Dashboard = () => {
     AsyncStorage.clear()
       .then(() => {
         // console.log('Dashboard: Navigating to /signin');
-        Alert.alert(t('logout'), t('logoutMessage'));
+        // Alert.alert(t('logout'), t('logoutMessage'));
         router.replace('/signin');
       })
       .catch((error) => {

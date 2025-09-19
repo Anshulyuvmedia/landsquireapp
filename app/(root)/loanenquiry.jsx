@@ -5,10 +5,13 @@ import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { MaterialIcons, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import images from "@/constants/images";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LoanEnquiry = () => {
+    const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const [loanAmount, setLoanAmount] = useState('');
     const [rawLoanAmount, setRawLoanAmount] = useState(''); // Store raw numeric value
     const [name, setName] = useState('');
@@ -207,6 +210,16 @@ const LoanEnquiry = () => {
         setLoanAmount(formatIndianNumber(cleanedText));
     };
 
+    const handleBack = () => {
+        if (navigation.canGoBack()) {
+            // console.log('EditProfile: Navigating back');
+            navigation.goBack();
+        } else {
+            // console.log('EditProfile: Cannot go back, navigating to dashboard');
+            router.navigate('/(root)/(tabs)/dashboard');
+        }
+    };
+
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
             <ScrollView
@@ -217,7 +230,7 @@ const LoanEnquiry = () => {
                 <View style={styles.headerContainer}>
                     <Text style={styles.headerTitle}>Property Loan Enquiry</Text>
                     <TouchableOpacity
-                        onPress={() => router.push('/(tabs)/dashboard')}
+                        onPress={handleBack}
                         style={styles.backButton}
                         activeOpacity={0.7}
                     >
@@ -319,7 +332,7 @@ const LoanEnquiry = () => {
                 animationType="slide"
                 customStyles={{ container: styles.sheetContainer }}
             >
-                <View style={styles.sheetContent}>
+                <View style={[styles.sheetContent, { marginBottom: insets.bottom, }]}>
                     <MaterialIcons name="check-circle" size={48} color="#10B981" style={styles.sheetIcon} />
                     <Text style={styles.sheetTitle}>Application Submitted!</Text>
                     <Text style={styles.sheetText}>
@@ -350,7 +363,7 @@ const LoanEnquiry = () => {
                     <Text style={styles.sheetText}>
                         An error occurred. Please check your input and try again.
                     </Text>
-                    <View style={styles.sheetButtonContainer}>
+                    <View style={[styles.sheetButtonContainer, { marginBottom: insets.bottom, }]}>
                         <TouchableOpacity
                             onPress={closeErrorSheet}
                             style={[styles.sheetButton, styles.sheetPrimaryButton]}

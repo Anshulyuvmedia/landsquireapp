@@ -7,6 +7,7 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import icons from '@/constants/icons';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LIMIT = 10; // Number of notifications per page
 
@@ -20,6 +21,7 @@ const Notifications = () => {
     const [filter, setFilter] = useState(t('all'));
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [error, setError] = useState(null);
+    const insets = useSafeAreaInsets();
 
     const fetchNotifications = useCallback(async (pageToFetch = 1) => {
         if (!hasMore && pageToFetch !== 1) return;
@@ -313,7 +315,7 @@ const Notifications = () => {
                         borderTopLeftRadius: moderateScale(20),
                         borderTopRightRadius: moderateScale(20),
                         padding: moderateScale(16),
-                        height: 400,
+                        height: 500,
                     },
                     draggableIcon: { backgroundColor: '#D1D5DB' },
                 }}
@@ -359,7 +361,7 @@ const Notifications = () => {
                                 {JSON.parse(selectedNotification.data).message}
                             </Text>
                         </ScrollView>
-                        <View style={styles.sheetButtons}>
+                        <View style={[styles.sheetButtons , { marginBottom: insets.bottom, }]}>
                             {selectedNotification.property && (
                                 <TouchableOpacity
                                     style={styles.viewPropertyButton}

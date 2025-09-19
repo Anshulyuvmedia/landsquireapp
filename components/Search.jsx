@@ -6,9 +6,11 @@ import RNPickerSelect from "react-native-picker-select";
 import axios from "axios";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Search = () => {
     const { t, i18n } = useTranslation();
+    const insets = useSafeAreaInsets();
     const path = usePathname();
     const params = useLocalSearchParams();
     const refRBSheet = useRef(null);
@@ -176,7 +178,7 @@ const Search = () => {
                 ref={refRBSheet}
                 closeOnDragDown={true}
                 closeOnPressMask={true}
-                height={Dimensions.get('window').height * 0.8} // Use a percentage of screen height
+                height={Dimensions.get('window').height * 0.9} // Use a percentage of screen height
                 customStyles={{
                     wrapper: { backgroundColor: "rgba(0,0,0,0.5)" },
                     container: { borderTopLeftRadius: 35, borderTopRightRadius: 35, padding: 20, backgroundColor: "white" },
@@ -291,7 +293,7 @@ const Search = () => {
                     </ScrollView>
                 </ScrollView>
 
-                <View style={styles.submitContainer}>
+                <View style={[styles.submitContainer, { marginBottom: insets.bottom, }]}>
                     <TouchableOpacity
                         onPress={handleSubmit}
                         style={styles.submitButton}

@@ -1,4 +1,4 @@
-import { StyleSheet, View, FlatList, TextInput, TouchableOpacity, Text, ActivityIndicator, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, TouchableOpacity, Text, ActivityIndicator, Pressable, Platform } from 'react-native';
 import React, { useRef, useState, useEffect, memo } from 'react';
 import MapView, { Marker, PROVIDER_GOOGLE, Polygon } from 'react-native-maps';
 import axios from 'axios';
@@ -9,8 +9,12 @@ import * as Location from 'expo-location';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Buffer } from 'buffer';
 
-// Define parseCoordinates outside Mapview
+// Make Buffer global if needed
+global.Buffer = Buffer;
+
+// Parse coordinates
 const parseCoordinates = (maplocations) => {
     try {
         const location = JSON.parse(maplocations);
@@ -70,22 +74,21 @@ const Mapview = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [citySuggestions, setCitySuggestions] = useState([]);
-    const [selectedCity, setSelectedCity] = useState('Ajmer');
+    const [selectedCity, setSelectedCity] = useState(null);
     const [currentLocationName, setCurrentLocationName] = useState('Ajmer');
     const [page, setPage] = useState(1);
-    const [itemsPerPage] = useState(8); // Items per page for FlatList
-    const [markersPerPage] = useState(10); // Items per page for map
+    const [itemsPerPage] = useState(8);
+    const [markersPerPage] = useState(10);
     const [hasMore, setHasMore] = useState(true);
     const [mapType, setMapType] = useState('hybrid');
-    const [displayMode, setDisplayMode] = useState('properties'); // 'properties', 'projects'
-    const [propertyMode, setPropertyMode] = useState('sell'); // 'sell', 'rent'
+    const [displayMode, setDisplayMode] = useState('properties');
+    const [propertyMode, setPropertyMode] = useState('sell');
 
     const viewItem = (item) => {
         const route = item.type === 'project' ? `/projects/${item.id}` : `/properties/${item.id}`;
         router.push(route);
     };
 
-    // Toggle map type
     const toggleMapType = () => {
         setMapType((prevType) => {
             if (prevType === 'hybrid') return 'standard';
@@ -94,17 +97,16 @@ const Mapview = () => {
         });
     };
 
-    // Toggle display mode
     const toggleDisplayMode = () => {
         setDisplayMode((prev) => prev === 'properties' ? 'projects' : 'properties');
+        setPage(1); // Reset page on mode change
     };
 
-    // Toggle property mode
     const togglePropertyMode = () => {
         setPropertyMode((prev) => prev === 'sell' ? 'rent' : 'sell');
+        setPage(1); // Reset page on mode change
     };
 
-    // Fetch filtered data based on city
     const fetchFilterData = async (city) => {
         setLoading(true);
         setPropertiesData([]);
@@ -117,7 +119,6 @@ const Mapview = () => {
 
         const token = await AsyncStorage.getItem('userToken');
         if (!token) {
-            console.error('No token found in AsyncStorage');
             setError('Please log in to access properties.');
             router.push('/signin');
             setLoading(false);
@@ -137,15 +138,17 @@ const Mapview = () => {
                 },
             });
 
-            setPropertiesData(response.data?.data || []);
+            const properties = response.data?.data || [];
+            setPropertiesData(properties);
 
-            // Fetch projects with region params
+            // Fetch projects with city filter
             const projectsResponse = await axios.get('https://landsquire.in/api/upcomingproject', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'User-Agent': 'LandSquireApp/1.0 (React Native)',
                 },
                 params: {
+                    city: city || undefined,
                     latitude: region?.latitude || 26.4499,
                     longitude: region?.longitude || 74.6399,
                     latitudeDelta: region?.latitudeDelta || 5.0,
@@ -153,39 +156,33 @@ const Mapview = () => {
                 },
             });
 
-            setProjectsData(projectsResponse.data?.projects || []);
+            const projects = projectsResponse.data?.projects || [];
+            setProjectsData(projects);
 
-            if ((response.data?.data || []).length === 0 && (projectsResponse.data?.projects || []).length === 0) {
-                setError("No properties or projects found for the selected city.");
+            if (properties.length === 0 && projects.length === 0) {
+                setError(`No ${displayMode} found for ${city || 'the selected area'}.`);
+            } else {
+                setError(null);
             }
         } catch (error) {
             console.error("Error fetching filtered data:", error.response?.data || error.message);
-            setPropertiesData([]);
-            setProjectsData([]);
-            setFilteredData([]);
-            setVisibleItems([]);
-            if (error.response?.status === 404) {
-                setError("No data found for the selected city.");
-            } else if (error.response?.status === 500) {
-                setError("Server error. Please try again later.");
-            } else if (error.message.includes("Network Error")) {
-                setError("Network error. Please check your internet connection.");
-            } else {
-                setError("An unexpected error occurred. Please try again.");
-            }
+            setError(error.response?.status === 404
+                ? `No ${displayMode} found for ${city || 'the selected area'}.`
+                : error.message.includes("Network Error")
+                    ? "Network error. Please check your internet connection."
+                    : "An unexpected error occurred. Please try again."
+            );
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch property and project data
     const fetchListingData = async (mapRegion) => {
         setLoading(true);
         setError(null);
 
         const token = await AsyncStorage.getItem('userToken');
         if (!token) {
-            console.error('No token found in AsyncStorage');
             setError('Please log in to access data.');
             router.push('/signin');
             setLoading(false);
@@ -219,12 +216,10 @@ const Mapview = () => {
                 },
             });
 
-            // console.log('projects', projectsResponse.data?.projects);
-
             setPropertiesData(response.data?.data || []);
             setProjectsData(projectsResponse.data?.projects || []);
 
-            if (!region && ((response.data?.data || []).length > 0 || (projectsResponse.data?.projects || []).length > 0)) {
+            if (!region && (response.data?.data?.length > 0 || projectsResponse.data?.projects?.length > 0)) {
                 let firstCoords;
                 if (response.data?.data?.length > 0) {
                     firstCoords = parseCoordinates(response.data.data[0].maplocations);
@@ -252,44 +247,32 @@ const Mapview = () => {
                 await AsyncStorage.removeItem('userData');
                 router.push('/signin');
             }
-
-            if (error.message.includes("Network Error")) {
-                setError("Network error. Please check your internet connection.");
-            } else {
-                setError("An unexpected error occurred. Please try again.");
-            }
+            setError(error.message.includes("Network Error")
+                ? "Network error. Please check your internet connection."
+                : "An unexpected error occurred. Please try again."
+            );
         } finally {
             setLoading(false);
         }
     };
 
-    // Compute filteredData based on modes and search
     useEffect(() => {
         let data = [];
         if (displayMode === 'properties') {
             let props = propertiesData.map(p => ({
                 ...p,
                 type: 'property',
-                propertyfor: p.propertyfor || 'sell', // Treat null propertyfor as 'sell'
+                propertyfor: p.propertyfor || 'sell',
             }));
-            if (propertyMode !== 'both') {
-                props = props.filter(p => p.propertyfor.toLowerCase() === propertyMode.toLowerCase());
-            }
-            if (searchQuery.trim() !== '') {
-                props = props.filter(p =>
-                    p.property_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    p.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    p.propertyfor?.toLowerCase().includes(searchQuery.toLowerCase())
-                );
+            props = props.filter(p => p.propertyfor.toLowerCase() === propertyMode.toLowerCase());
+            if (selectedCity) {
+                props = props.filter(p => p.city?.toLowerCase() === selectedCity.toLowerCase());
             }
             data = [...data, ...props];
-        }
-        if (displayMode === 'projects') {
+        } else {
             let projs = projectsData.map(p => ({ ...p, type: 'project' }));
-            if (searchQuery.trim() !== '') {
-                projs = projs.filter(p =>
-                    p.projecttitle?.toLowerCase().includes(searchQuery.toLowerCase())
-                );
+            if (selectedCity) {
+                projs = projs.filter(p => p.city?.toLowerCase() === selectedCity.toLowerCase());
             }
             data = [...data, ...projs];
         }
@@ -297,18 +280,15 @@ const Mapview = () => {
         const paginatedData = data.slice(0, page * itemsPerPage);
         setFilteredData(paginatedData);
         setHasMore(data.length > paginatedData.length);
-    }, [propertiesData, projectsData, displayMode, propertyMode, searchQuery, page]);
+    }, [propertiesData, projectsData, displayMode, propertyMode, selectedCity, page]);
 
-    // Load more items for FlatList
     const loadMoreData = () => {
         if (loading || !hasMore) return;
         setLoading(true);
-        const nextPage = page + 1;
-        setPage(nextPage);
+        setPage(prev => prev + 1);
         setLoading(false);
     };
 
-    // Initial load with Rajasthan (Ajmer) coordinates
     useEffect(() => {
         const rajasthanRegion = {
             latitude: 26.4499,
@@ -320,7 +300,6 @@ const Mapview = () => {
         fetchListingData(rajasthanRegion);
     }, []);
 
-    // Request location permissions and get current location
     const getCurrentLocation = async () => {
         try {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -350,21 +329,21 @@ const Mapview = () => {
                 const cityComponent = addressComponents.find(comp => comp.types.includes('locality'));
                 const city = cityComponent ? cityComponent.long_name : 'Unknown Location';
                 setCurrentLocationName(city);
+                setSelectedCity(city);
+                fetchFilterData(city);
             } else {
                 setCurrentLocationName('Unknown Location');
             }
-
-            fetchListingData(newRegion);
         } catch (error) {
             console.error('Error getting location:', error);
             setError("Unable to get your location. Please try again.");
         }
     };
 
-    // Fetch city suggestions from Google Places API
     const fetchCitySuggestions = async (query) => {
         if (!query || query.trim() === '') {
             setCitySuggestions([]);
+            setShowSuggestions(false);
             return;
         }
 
@@ -381,17 +360,46 @@ const Mapview = () => {
             );
 
             if (response.data.status === 'OK') {
-                setCitySuggestions(response.data.predictions || []);
-            } else if (response.data.status === 'REQUEST_DENIED') {
-                setError("Google Places API request denied. Please check your API key.");
-                setCitySuggestions([]);
+                const suggestions = await Promise.all(
+                    response.data.predictions.map(async (prediction) => {
+                        try {
+                            const detailsResponse = await axios.get(
+                                'https://maps.googleapis.com/maps/api/place/details/json',
+                                {
+                                    params: {
+                                        place_id: prediction.place_id,
+                                        fields: 'address_components',
+                                        key: GOOGLE_MAPS_API_KEY,
+                                    },
+                                }
+                            );
+                            if (detailsResponse.data.status === 'OK') {
+                                const addressComponents = detailsResponse.data.result.address_components;
+                                const cityComponent = addressComponents.find(comp => comp.types.includes('locality'));
+                                const city = cityComponent ? cityComponent.long_name : prediction.description.split(',')[0];
+                                return {
+                                    description: city,
+                                    place_id: prediction.place_id,
+                                };
+                            }
+                            return { description: prediction.description.split(',')[0], place_id: prediction.place_id };
+                        } catch (error) {
+                            console.error('Error fetching place details:', error);
+                            return { description: prediction.description.split(',')[0], place_id: prediction.place_id };
+                        }
+                    })
+                );
+                setCitySuggestions(suggestions);
+                setShowSuggestions(true);
             } else {
-                console.error('Google Places API error:', response.data.status);
                 setCitySuggestions([]);
+                setShowSuggestions(false);
+                setError("Unable to fetch city suggestions. Please try again.");
             }
         } catch (error) {
             console.error('Error fetching city suggestions:', error);
             setCitySuggestions([]);
+            setShowSuggestions(false);
             setError("Unable to fetch city suggestions. Please try again.");
         }
     };
@@ -405,7 +413,7 @@ const Mapview = () => {
                 {
                     params: {
                         place_id: placeId,
-                        fields: 'geometry,formatted_address',
+                        fields: 'geometry,address_components',
                         key: GOOGLE_MAPS_API_KEY,
                     },
                 }
@@ -413,8 +421,9 @@ const Mapview = () => {
 
             if (response.data.status === 'OK') {
                 const { lat, lng } = response.data.result.geometry.location;
-                const addressComponents = response.data.result.formatted_address.split(', ');
-                const city = addressComponents[0];
+                const addressComponents = response.data.result.address_components;
+                const cityComponent = addressComponents.find(comp => comp.types.includes('locality'));
+                const city = cityComponent ? cityComponent.long_name : 'Unknown City';
                 const newRegion = {
                     latitude: lat,
                     longitude: lng,
@@ -427,7 +436,6 @@ const Mapview = () => {
                 mapRef.current?.animateToRegion(newRegion, 500);
                 fetchFilterData(city);
             } else {
-                console.error('Google Places Details API error:', response.data.status);
                 setError("Unable to fetch city details. Please try again.");
             }
         } catch (error) {
@@ -443,7 +451,7 @@ const Mapview = () => {
         if (query.trim() === '') {
             setSelectedCity(null);
             setCurrentLocationName('Ajmer');
-            setShowSuggestions(true);
+            setShowSuggestions(false);
             setError(null);
             const ajmerRegion = {
                 latitude: 26.4499,
@@ -453,21 +461,15 @@ const Mapview = () => {
             };
             setRegion(ajmerRegion);
             fetchListingData(ajmerRegion);
-            return;
+        } else {
+            setShowSuggestions(true);
         }
-
-        setShowSuggestions(true);
     };
 
-    const handleSuggestionPress = (suggestion, isCity = false) => {
-        setSearchQuery(suggestion.description || suggestion);
-        if (isCity) {
-            getCityDetails(suggestion.place_id);
-        } else {
-            setSelectedCity(null);
-            handleSearch(suggestion);
-        }
+    const handleSuggestionPress = (suggestion) => {
+        setSearchQuery(suggestion.description);
         setShowSuggestions(false);
+        getCityDetails(suggestion.place_id);
     };
 
     const handleMarkerPress = (item) => {
@@ -501,7 +503,6 @@ const Mapview = () => {
                 }, 100);
             }
         } else {
-            console.warn('Item not found in filteredData:', item.id, item.type);
             setError('Selected item is not in the current list. Try searching or loading more.');
         }
     };
@@ -582,34 +583,23 @@ const Mapview = () => {
 
     const formatINR = (amount) => {
         if (!amount) return '₹0';
-
-        // console.log("format price raw:", amount, typeof amount);
-
-        // Remove ₹ symbol and commas
         const cleaned = String(amount).replace(/[₹,]/g, '').trim();
         const num = Number(cleaned);
-
         if (isNaN(num) || num <= 0) return '₹0';
-
         if (num >= 1e7) {
             return '₹' + (num / 1e7).toFixed(2).replace(/\.00$/, '') + ' Cr';
         } else if (num >= 1e5) {
             return '₹' + (num / 1e5).toFixed(1).replace(/\.0$/, '') + ' Lakh';
         }
-
         return '₹' + num.toLocaleString('en-IN');
     };
-
-
-
-
 
     return (
         <Pressable style={styles.container} onPress={() => setShowSuggestions(false)}>
             {loading && (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#fff" />
-                   <Text style={styles.loadingText}>Loading data...</Text>
+                    <Text style={styles.loadingText}>Loading data...</Text>
                 </View>
             )}
 
@@ -634,7 +624,7 @@ const Mapview = () => {
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search property or project in your city..."
+                    placeholder="Search by city..."
                     placeholderTextColor="#888"
                     value={searchQuery}
                     onChangeText={handleSearch}
@@ -659,22 +649,18 @@ const Mapview = () => {
                 </TouchableOpacity>
             </View>
 
-            {showSuggestions && (
+            {showSuggestions && citySuggestions.length > 0 && (
                 <View style={styles.suggestionsContainer}>
-                    {citySuggestions.length > 0 && (
-                        <>
-                            <Text style={styles.suggestionsTitle}>Cities</Text>
-                            {citySuggestions.map((suggestion, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={styles.suggestionItem}
-                                    onPress={() => handleSuggestionPress(suggestion, true)}
-                                >
-                                    <Text style={styles.suggestionText}>{suggestion.description}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </>
-                    )}
+                    <Text style={styles.suggestionsTitle}>Cities</Text>
+                    {citySuggestions.map((suggestion, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={styles.suggestionItem}
+                            onPress={() => handleSuggestionPress(suggestion)}
+                        >
+                            <Text style={styles.suggestionText}>{suggestion.description}</Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
             )}
 
@@ -692,6 +678,7 @@ const Mapview = () => {
                     latitudeDelta: 5.0,
                     longitudeDelta: 5.0,
                 }}
+                region={region}
                 onRegionChangeComplete={handleRegionChange}
                 compassEnabled={true}
                 mapType={mapType}
@@ -699,50 +686,31 @@ const Mapview = () => {
                 {visibleItems.map((item) => {
                     if (item.type === 'property') {
                         const coords = parseCoordinates(item.maplocations);
-                        {/* console.log('price', item.price, typeof item.price); */ }
-                        const proptype = item.category
-                        const price =
-                            item.price != null && !isNaN(item.price)
-                                ? `₹${Number(item.price).toLocaleString('en-IN')}`
-                                : 'N/A';
+                        const proptype = item.category || 'Unknown';
+                        const price = item.price || 0;
+                        const formatted = formatINR(price);
 
                         return (
                             <Marker
                                 key={`property-${item.id}`}
                                 coordinate={coords}
                                 onPress={() => handleMarkerPress(item)}
-                                anchor={{ x: 0.5, y: 1 }}
                                 tracksViewChanges={false}
                             >
-                                <View
-                                    style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        backgroundColor: '#fff',
-                                        borderRadius: 20,
-                                        paddingHorizontal: 8,
-                                        paddingVertical: 4,
-                                        shadowColor: '#000',
-                                        shadowOpacity: 0.2,
-                                        shadowOffset: { width: 0, height: 2 },
-                                        shadowRadius: 4,
-                                        elevation: 4,
-                                    }}
-                                >
+                                <View style={styles.markerContainer}>
                                     {proptype === 'Agriculture' ? (
                                         <MaterialIcons name="house-siding" size={18} color="#234F68" style={{ marginRight: 4 }} />
                                     ) : (
                                         <Ionicons name="home-outline" size={18} color="#234F68" style={{ marginRight: 4 }} />
                                     )}
-                                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#000' }}>
-                                        {formatINR(price)}
-                                    </Text>
+                                    <Text style={styles.markerText}>{formatted}</Text>
                                 </View>
+                                <View style={styles.trianglePointer} />
                             </Marker>
                         );
                     } else {
                         const polyCoords = parseProjectCoordinates(item.coordinates);
-                        if (polyCoords.length < 3) return null; // Need at least 3 points for polygon
+                        if (polyCoords.length < 3) return null;
                         const centroid = calculateCentroid(polyCoords);
 
                         return (
@@ -758,7 +726,6 @@ const Mapview = () => {
                                     coordinate={centroid}
                                     pinColor="green"
                                     onPress={() => handleMarkerPress(item)}
-                                    anchor={{ x: 0.5, y: 0.5 }}
                                     tracksViewChanges={false}
                                 />
                             </React.Fragment>
@@ -767,35 +734,30 @@ const Mapview = () => {
                 })}
             </MapView>
 
-            {
-                error && !loading && (
-                    <View style={styles.errorContainer}>
-                        <View style={styles.noResultsContainer}>
-                            <Text style={styles.noResultsText}>{error}</Text>
-                        </View>
+            {error && !loading && (
+                <View style={styles.errorContainer}>
+                    <View style={styles.noResultsContainer}>
+                        <Text style={styles.noResultsText}>{error}</Text>
                     </View>
-                )
-            }
-            {
-                !error && !loading && visibleItems.length === 0 && filteredData.length === 0 && (
-                    <View style={styles.errorContainer}>
-                        <View style={styles.noResultsContainer}>
-                            <Text style={styles.noResultsText}>Can't find real estate nearby you</Text>
-                        </View>
+                </View>
+            )}
+            {!error && !loading && visibleItems.length === 0 && filteredData.length === 0 && (
+                <View style={styles.errorContainer}>
+                    <View style={styles.noResultsContainer}>
+                        <Text style={styles.noResultsText}>No real estate found for {selectedCity || 'the selected area'}</Text>
                     </View>
-                )
-            }
+                </View>
+            )}
 
             <FlatList
                 ref={flatListRef}
-                data={filteredData || []}
+                data={filteredData}
                 renderItem={({ item }) => (
                     <MapCard
                         item={{
                             ...item,
                             property_name: item.property_name || item.projecttitle,
                             description: item.description || item.discription,
-                            // Add more field mappings if needed for MapCard
                         }}
                         map={'true'}
                         onPress={() => handleCardPress(item)}
@@ -828,6 +790,7 @@ const Mapview = () => {
 
 export default Mapview;
 
+// Styles remain the same as provided
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -979,7 +942,6 @@ const styles = StyleSheet.create({
         zIndex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-
     },
     loadingText: {
         marginTop: 10,
@@ -1025,25 +987,18 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 14,
     },
-    markerWrap: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-        overflow: 'visible',
-    },
     markerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        backgroundColor: '#fff',
         borderRadius: 20,
-        elevation: 5,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
         shadowColor: '#000',
+        shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
         shadowRadius: 4,
-        maxWidth: 250,
+        elevation: 4,
     },
     markerText: {
         marginLeft: 6,
@@ -1059,7 +1014,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 8,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderTopColor: 'white',
+        borderTopColor: '#fff',
         marginTop: -1,
     },
 });

@@ -1,6 +1,6 @@
 import { StyleSheet, ScrollView, Text, View, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Linking, Alert } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,7 @@ import icons from '@/constants/icons';
 import { useUser } from '@/context/UserContext';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Utility function to format phone numbers for WhatsApp
 const formatPhoneNumber = (phone) => {
@@ -25,6 +26,7 @@ const formatPhoneNumber = (phone) => {
 
 const Loanleads = () => {
     const { t, i18n } = useTranslation();
+    const insets = useSafeAreaInsets();
     const router = useRouter();
     const { userType, loading: userLoading } = useUser();
     const [enquiries, setEnquiries] = useState([]);
@@ -32,6 +34,17 @@ const Loanleads = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedEnquiry, setSelectedEnquiry] = useState(null);
     const rbSheetRef = useRef();
+    const navigation = useNavigation();
+
+    const handleBack = () => {
+        if (navigation.canGoBack()) {
+            // console.log('EditProfile: Navigating back');
+            navigation.goBack();
+        } else {
+            // console.log('EditProfile: Cannot go back, navigating to dashboard');
+            router.navigate('/(root)/(tabs)/dashboard');
+        }
+    };
 
     const fetchUserEnquiries = async () => {
         setLoading(true);
@@ -49,7 +62,7 @@ const Loanleads = () => {
                     'User-Agent': 'LandSquireApp/1.0 (React Native)',
                 },
             });
-            console.log('response', response.data.loanenquiries);
+            // console.log('response', response.data.loanenquiries);
             if (response.data && Array.isArray(response.data.loanenquiries)) {
                 const parsedEnquiries = response.data.loanenquiries.map(enquiry => ({
                     ...enquiry,
@@ -68,7 +81,7 @@ const Loanleads = () => {
             setRefreshing(false);
         }
     };
-    
+
     useEffect(() => {
         fetchUserEnquiries();
     }, []);
@@ -250,7 +263,7 @@ const Loanleads = () => {
                 <Text style={[styles.title, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
                     {t('Loan Enquiries')}
                 </Text>
-                <TouchableOpacity onPress={() => router.push('/(tabs)/dashboard')} style={styles.backButton}>
+                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
                     <Image source={icons.backArrow} style={styles.backIcon} />
                 </TouchableOpacity>
                 {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
@@ -357,7 +370,7 @@ const Loanleads = () => {
                             </View>
                             {renderLoanDetails()}
                         </ScrollView>
-                        <View style={styles.sheetButtonContainer}>
+                        <View style={[styles.sheetButtonContainer, { marginBottom: insets.bottom, }]}>
                             {selectedEnquiry.agentid && (
                                 <TouchableOpacity
                                     style={[styles.sheetActionButton, styles.agentButton]}

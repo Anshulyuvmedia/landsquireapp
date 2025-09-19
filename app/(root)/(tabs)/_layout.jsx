@@ -1,9 +1,7 @@
-// app/(root)/(tabs)/_layout.jsx
 import { Tabs } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, useAnimatedReaction, interpolate, Extrapolate, } from 'react-native-reanimated';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useEffect } from 'react';
+import { Dimensions } from 'react-native';
 
 const TabIcon = ({ focused, name, title }) => {
     const scale = useSharedValue(1);
@@ -21,11 +19,16 @@ const TabIcon = ({ focused, name, title }) => {
         opacity: dotOpacity.value,
     }));
 
-    useEffect(() => {
-        scale.value = withSpring(focused ? 1.2 : 1, { damping: 12, stiffness: 120 });
-        translateY.value = withSpring(focused ? -6 : 0, { damping: 12, stiffness: 120 });
-        dotOpacity.value = withTiming(focused ? 1 : 0, { duration: 200 });
-    }, [focused, scale, translateY, dotOpacity]);
+    useAnimatedReaction(
+        () => focused,
+        (currentFocused) => {
+            // console.log(`TabIcon (${title}) focused (reaction):`, currentFocused);
+            scale.value = withSpring(currentFocused ? 1.2 : 1, { damping: 12, stiffness: 120 });
+            translateY.value = withSpring(currentFocused ? -6 : 0, { damping: 12, stiffness: 120 });
+            dotOpacity.value = withTiming(currentFocused ? 1 : 0, { duration: 200 });
+        },
+        [focused]
+    );
 
     return (
         <Animated.View className="flex-grow flex-col items-center justify-center h-full">
@@ -37,24 +40,20 @@ const TabIcon = ({ focused, name, title }) => {
                 />
             </Animated.View>
             <Animated.View style={[{ marginTop: 4 }, animatedDotStyle]}>
-                {focused && (
-                    <Animated.View
-                        style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 3,
-                            backgroundColor: '#234F68',
-                        }}
-                    />
-                )}
+                <Animated.View
+                    style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: '#234F68',
+                    }}
+                />
             </Animated.View>
         </Animated.View>
     );
 };
 
 const TabsLayout = () => {
-    const insets = useSafeAreaInsets();
-
     const tabsConfig = [
         { name: 'home', title: 'Home', icon: 'compass' },
         { name: 'myassets', title: 'My Assets', icon: 'building-o' },
@@ -63,9 +62,11 @@ const TabsLayout = () => {
         { name: 'dashboard', title: 'Dashboard', icon: 'user-o' },
     ];
 
+    const { width } = Dimensions.get('window');
+
     return (
         <Tabs
-            screenOptions={{
+            screenOptions={({ route }) => ({
                 tabBarShowLabel: false,
                 tabBarStyle: {
                     backgroundColor: '#ffffff',
@@ -83,19 +84,64 @@ const TabsLayout = () => {
                     marginBottom: 12,
                 },
                 tabBarHideOnKeyboard: true,
-            }}
+                tabBarIcon: ({ focused }) => {
+                    const tab = tabsConfig.find((t) => t.name === route.name);
+                    return <TabIcon focused={focused} name={tab.icon} title={tab.title} />;
+                },
+                // Custom slide animation for tab transitions
+                tabBarScreenOptions: {
+                    transitionSpec: {
+                        open: {
+                            animation: 'spring',
+                            config: { stiffness: 100, damping: 20 },
+                        },
+                        close: {
+                            animation: 'spring',
+                            config: { stiffness: 100, damping: 20 },
+                        },
+                    },
+                    cardStyleInterpolator: ({ current, next, layouts }) => {
+                        return {
+                            cardStyle: {
+                                transform: [
+                                    {
+                                        translateX: Animated.interpolate(current.progress, {
+                                            inputRange: [0, 1],
+                                            outputRange: [width, 0],
+                                            extrapolate: Extrapolate.CLAMP,
+                                        }),
+                                    },
+                                    {
+                                        translateX: next
+                                            ? Animated.interpolate(next.progress, {
+                                                inputRange: [0, 1],
+                                                outputRange: [0, -width],
+                                                extrapolate: Extrapolate.CLAMP,
+                                            })
+                                            : 0,
+                                    },
+                                ],
+                            },
+                            containerStyle: {
+                                opacity: Animated.interpolate(current.progress, {
+                                    inputRange: [0, 0.5, 1],
+                                    outputRange: [0, 0.5, 1],
+                                    extrapolate: Extrapolate.CLAMP,
+                                }),
+                            },
+                        };
+                    },
+                },
+            })}
             sceneContainerStyle={{ backgroundColor: '#fafafa' }}
         >
             {tabsConfig.map((tab) => (
                 <Tabs.Screen
-                    key={tab.name}
+                    key={`${tab.name}-${tab.title}`}
                     name={tab.name}
                     options={{
                         title: tab.title,
                         headerShown: false,
-                        tabBarIcon: ({ focused }) => (
-                            <TabIcon focused={focused} name={tab.icon} title={tab.title} />
-                        ),
                     }}
                 />
             ))}
