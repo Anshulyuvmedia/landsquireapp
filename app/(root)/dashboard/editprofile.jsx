@@ -1,10 +1,11 @@
+// app/(root)/dashboard/editprofile.jsx
 import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import axios from 'axios';
 import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,7 +14,8 @@ import { Ionicons, Octicons, Feather, MaterialCommunityIcons } from '@expo/vecto
 import { v4 as uuidv4 } from 'uuid';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import Constants from 'expo-constants';
-import { FlatList } from 'react-native'; // Import FlatList explicitly
+import { FlatList } from 'react-native';
+import { useUser } from '@/context/UserContext';
 
 const EditProfile = () => {
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY || '';
@@ -35,19 +37,48 @@ const EditProfile = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sessionToken, setSessionToken] = useState(uuidv4());
     const sheetRef = useRef();
-
-    useEffect(() => {
-        fetchProfileData();
-    }, []);
+    const { loading: contextLoading, userData: contextUserData } = useUser();
+    const navigation = useNavigation();
 
     const fetchProfileData = async () => {
+        console.log('EditProfile: fetchProfileData started');
+        if (contextUserData) {
+            console.log('EditProfile: Using cached userData from context');
+            setUserId(contextUserData.id);
+            setUsername(contextUserData.username);
+            setUsertype(contextUserData.user_type);
+            setEmail(contextUserData.email);
+            setSearchTerm(contextUserData.city || '');
+            setCity(contextUserData.city || '');
+            setState(contextUserData.state || '');
+            setPhoneNumber(contextUserData.mobilenumber);
+            setCompanyName(contextUserData.company_name || '');
+            setBankName(contextUserData.bankname || '');
+            setCompanyDocs(contextUserData.company_document ? [{ uri: contextUserData.company_document, name: contextUserData.company_document }] : []);
+
+            let profileImage = contextUserData.profile;
+            if (typeof profileImage === 'number') {
+                profileImage = profileImage.toString();
+            }
+            if (typeof profileImage === 'string' && profileImage.trim() !== '' && profileImage !== 'null' && profileImage !== 'undefined') {
+                profileImage = profileImage.startsWith('http')
+                    ? profileImage
+                    : `https://landsquire.in/adminAssets/images/Users/${profileImage}`;
+            } else {
+                profileImage = images.avatar;
+            }
+            setImage(profileImage);
+            setLoading(false);
+            return;
+        }
+
         try {
             setLoading(true);
             const userData = await AsyncStorage.getItem('userData');
             const parsedUserData = userData ? JSON.parse(userData) : null;
             if (!parsedUserData || !parsedUserData.id) {
-                await AsyncStorage.removeItem('userData');
-                router.push('/signin');
+                console.log('EditProfile: No valid user data, skipping fetch');
+                setLoading(false);
                 return;
             }
             const token = await AsyncStorage.getItem('userToken');
@@ -76,7 +107,6 @@ const EditProfile = () => {
             if (typeof profileImage === 'number') {
                 profileImage = profileImage.toString();
             }
-
             if (typeof profileImage === 'string' && profileImage.trim() !== '' && profileImage !== 'null' && profileImage !== 'undefined') {
                 profileImage = profileImage.startsWith('http')
                     ? profileImage
@@ -84,10 +114,9 @@ const EditProfile = () => {
             } else {
                 profileImage = images.avatar;
             }
-
             setImage(profileImage);
         } catch (error) {
-            console.error('Error fetching profile data:', error);
+            console.error('EditProfile: Error fetching profile data:', error);
             setSheetMessage({
                 type: 'error',
                 title: 'Error',
@@ -98,6 +127,16 @@ const EditProfile = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!contextLoading) {
+            fetchProfileData();
+        }
+    }, [contextLoading, contextUserData]);
+
+    // useEffect(() => {
+    // console.log('EditProfile: Navigation state:', navigation.getState());
+    // }, [navigation]);
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -143,7 +182,7 @@ const EditProfile = () => {
             });
             sheetRef.current.open();
         } catch (error) {
-            console.error('Document Picker Error:', error);
+            console.error('EditProfile: Document Picker Error:', error);
             setSheetMessage({
                 type: 'error',
                 title: 'Error',
@@ -168,7 +207,7 @@ const EditProfile = () => {
             const fileUrl = `https://landsquire.in/adminAssets/images/Users/${fileName}`;
             await Linking.openURL(fileUrl);
         } catch (error) {
-            console.error('Error opening file:', error);
+            console.error('EditProfile: Error opening file:', error);
             setSheetMessage({
                 type: 'error',
                 title: 'Error',
@@ -234,7 +273,7 @@ const EditProfile = () => {
                 throw new Error(response.data.message || 'Unexpected server response.');
             }
         } catch (error) {
-            console.error('Error updating profile:', error);
+            console.error('EditProfile: Error updating profile:', error);
             setSheetMessage({
                 type: 'error',
                 title: 'Update Failed',
@@ -279,7 +318,7 @@ const EditProfile = () => {
                 });
             }
         } catch (error) {
-            console.error('Fetch Suggestions Error:', error);
+            console.error('EditProfile: Fetch Suggestions Error:', error);
             setSuggestions([]);
             setMessage({
                 type: 'error',
@@ -335,7 +374,7 @@ const EditProfile = () => {
                 });
             }
         } catch (error) {
-            console.error('Handle Select Error:', error);
+            console.error('EditProfile: Handle Select Error:', error);
             setMessage({
                 type: 'error',
                 title: 'Error',
@@ -344,7 +383,16 @@ const EditProfile = () => {
         }
     };
 
-    // Data structure for FlatList
+    const handleBack = () => {
+        if (navigation.canGoBack()) {
+            console.log('EditProfile: Navigating back');
+            navigation.goBack();
+        } else {
+            console.log('EditProfile: Cannot go back, navigating to dashboard');
+            router.navigate('/(root)/(tabs)/dashboard');
+        }
+    };
+
     const renderItem = ({ item }) => {
         switch (item.type) {
             case 'profileImage':
@@ -359,7 +407,7 @@ const EditProfile = () => {
                             <Feather name="edit" size={24} color="#1F4C6B" style={styles.inputIcon} />
                         </TouchableOpacity>
                         <Text style={styles.usernameText} className="capitalize">{username}</Text>
-                        <Text style={styles.roleText} className="capitalize">{usertype == 'bankagent' ? 'Bank Agent' : usertype}</Text>
+                        <Text style={styles.roleText} className="capitalize">{usertype === 'bankagent' ? 'Bank Agent' : usertype}</Text>
                     </View>
                 );
             case 'input':
@@ -542,13 +590,26 @@ const EditProfile = () => {
         { type: 'companyDocs', id: 'companyDocs' },
     ];
 
+    if (contextLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa' }}>
+                <ActivityIndicator size="large" color="#1F4C6B" />
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <TouchableOpacity
+                    onPress={handleBack}
+                    style={styles.backButton}
+                >
                     <Image source={icons.backArrow} style={styles.backIcon} resizeMode="contain" />
                 </TouchableOpacity>
-                <Text style={styles.headerText} className="capitalize">Edit {usertype == 'bankagent' ? 'Bank Agent' : usertype} Profile</Text>
+                <Text style={styles.headerText} className="capitalize">
+                    Edit {usertype === 'bankagent' ? 'Bank Agent' : usertype} Profile
+                </Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -611,7 +672,6 @@ const EditProfile = () => {
 
 export default EditProfile;
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -678,9 +738,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Rubik-Regular',
         color: '#555',
         marginTop: 5,
-    },
-    formContainer: {
-        marginTop: 10,
     },
     inputContainer: {
         flexDirection: 'row',

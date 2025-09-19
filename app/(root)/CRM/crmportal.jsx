@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     },
     backButton: {
         backgroundColor: '#e6e8eb',
-        borderRadius: moderateScale(12),
+        borderRadius: moderateScale(100),
         width: moderateScale(40),
         height: moderateScale(40),
         justifyContent: 'center',

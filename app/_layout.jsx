@@ -1,15 +1,16 @@
+// app/_layout.js
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { Stack, useRouter, useRootNavigation } from 'expo-router';
+import { Slot, useRouter, useRootNavigation } from 'expo-router';
 import { UserProvider } from '../context/UserContext';
 import { useFonts } from 'expo-font';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../constants/i18n';
-import './globals.css';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
+import './globals.css';
 
 export default function RootLayout() {
     const [fontsLoaded, error] = useFonts({
@@ -30,15 +31,17 @@ export default function RootLayout() {
     useEffect(() => {
         const checkAuthSession = async () => {
             try {
+                console.log('RootLayout: Starting auth check');
                 await SplashScreen.preventAutoHideAsync();
 
                 if (fontsLoaded || error) {
                     if (error) {
-                        console.error('Font loading error:', error);
+                        console.error('RootLayout: Font loading error:', error);
                     }
 
                     const savedLanguage = await AsyncStorage.getItem('appLanguage');
                     if (savedLanguage) {
+                        console.log('RootLayout: Setting language:', savedLanguage);
                         await i18n.changeLanguage(savedLanguage);
                     }
 
@@ -47,17 +50,20 @@ export default function RootLayout() {
                     const parsedUserData = userData ? JSON.parse(userData) : null;
 
                     if (!token || !parsedUserData?.id) {
+                        console.log('RootLayout: No token or user ID, clearing storage');
                         await AsyncStorage.removeItem('userData');
                         await AsyncStorage.removeItem('userToken');
                         setIsAuthenticated(false);
                     } else {
+                        console.log('RootLayout: User authenticated');
                         setIsAuthenticated(true);
                     }
                 }
             } catch (error) {
-                console.error('Error during authentication check:', error);
+                console.error('RootLayout: Error during auth check:', error);
                 setIsAuthenticated(false);
             } finally {
+                console.log('RootLayout: App is ready');
                 setAppIsReady(true);
                 await SplashScreen.hideAsync();
             }
@@ -68,24 +74,20 @@ export default function RootLayout() {
 
     useEffect(() => {
         if (appIsReady && isAuthenticated !== null && rootNavigation?.isReady()) {
-            if (isAuthenticated) {
-                router.replace('/(root)/(tabs)/home');
-            } else {
-                router.replace('/(auth)/signin');
-            }
+            console.log('RootLayout: Navigation ready, navigating to:', isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
+            router.replace(isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
+        } else {
+            console.log('RootLayout: Navigation not ready or app not initialized');
         }
-        SystemUI.setBackgroundColorAsync('#fafafa');
     }, [appIsReady, isAuthenticated, rootNavigation]);
-
-    if (!appIsReady) return null;
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaProvider>
-                <StatusBar style='dark' />
+                <StatusBar style="dark" />
                 <UserProvider>
                     <SafeAreaView style={{ flex: 1 }}>
-                        <Stack screenOptions={{ headerShown: false }} />
+                        <Slot />
                     </SafeAreaView>
                 </UserProvider>
             </SafeAreaProvider>

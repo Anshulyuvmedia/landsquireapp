@@ -217,7 +217,7 @@ const LoanEnquiry = () => {
                 <View style={styles.headerContainer}>
                     <Text style={styles.headerTitle}>Property Loan Enquiry</Text>
                     <TouchableOpacity
-                        onPress={() => router.back()}
+                        onPress={() => router.push('/(tabs)/dashboard')}
                         style={styles.backButton}
                         activeOpacity={0.7}
                     >

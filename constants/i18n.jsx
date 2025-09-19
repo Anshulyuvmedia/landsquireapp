@@ -118,7 +118,7 @@ const resources = {
             olderNotifications: 'Older notifications',
             noNotificationTitle: 'No Notification Yet',
             noNotificationMessage: 'You will receive all important notifications here',
-            viewPropertynoti: 'View Details',
+            viewPropertynoti: 'View Property',
             // All brokers page
             allBrokers: 'All Property Brokers',
             allCities: 'Select a city',

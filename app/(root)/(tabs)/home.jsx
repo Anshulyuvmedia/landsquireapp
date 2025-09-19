@@ -5,7 +5,7 @@ import icons from '@/constants/icons';
 import Search from '@/components/Search';
 import { Card, HorizontalCard, MapCard } from '@/components/Cards';
 import Filters from '@/components/Filters';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { scale } from 'react-native-size-matters';
@@ -22,6 +22,7 @@ const LIMIT = 10; // Number of items per page
 const Home = () => {
     const { t, i18n } = useTranslation();
     const router = useRouter();
+    const navigation = useNavigation();
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -230,6 +231,12 @@ const Home = () => {
         fetchListingData(1);
     }, []);
 
+    const handleNavigation = () => {
+        // console.log('Home: Navigating to /dashboard');
+        // router.push('dashboard')
+        navigation.navigate('dashboard');
+    };
+
     return (
         <View className="flex-1 bg-[#fafafa]">
             <FlatList
@@ -292,7 +299,7 @@ const Home = () => {
                                     <Image source={icons.bell} className="size-6" />
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    onPress={() => router.push('/dashboard')}
+                                    onPress={handleNavigation}
                                     className="flex flex-row items-center ml-2 justify-center border px-1 py-1 rounded-full"
                                 >
                                     <Image

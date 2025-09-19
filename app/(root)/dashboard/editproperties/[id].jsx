@@ -1909,69 +1909,73 @@ const Editproperty = () => {
                             </View>
 
                             {/* Upload video */}
-                            <View style={[styles.label, step4Errors.videos && { color: 'red' }]}>
-                                <Text style={styles.label}>Upload Videos</Text>
-                                <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                    <FlatList
-                                        data={videos}
-                                        horizontal
-                                        keyExtractor={(item) => item.id.toString()}
-                                        nestedScrollEnabled={true}
-                                        contentContainerStyle={styles.fileContainer}
-                                        renderItem={({ item, index }) => (
-                                            <View style={styles.thumbnailBox} className="border border-gray-300">
-                                                <Image
-                                                    source={{ uri: `${item.thumbnailImages}?update=${new Date().getTime()}` }}
-                                                    style={styles.thumbnail}
-                                                />
-                                                <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
+                            <View style={styles.stepContent}>
+                                <View style={[styles.label, step4Errors.videos && { color: 'red' }]}>
+                                    <Text style={styles.label}>Upload Videos</Text>
+                                    <View style={{ flexGrow: 1, minHeight: 1 }}>
+                                        <FlatList
+                                            data={videos}
+                                            horizontal
+                                            keyExtractor={(item) => item.id.toString()}
+                                            nestedScrollEnabled={true}
+                                            contentContainerStyle={styles.fileContainer}
+                                            renderItem={({ item, index }) => (
+                                                <View style={styles.thumbnailBox} className="border border-gray-300">
+                                                    <Image
+                                                        source={{ uri: `${item.thumbnailImages}?update=${new Date().getTime()}` }}
+                                                        style={styles.thumbnail}
+                                                    />
+                                                    <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
 
-                                                <TouchableOpacity
-                                                    onPress={() => removeVideo(index, item.uri)}
-                                                    style={styles.deleteButton}
-                                                >
-                                                    <Text className="text-white">X</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        )}
-                                    />
+                                                    <TouchableOpacity
+                                                        onPress={() => removeVideo(index, item.uri)}
+                                                        style={styles.deleteButton}
+                                                    >
+                                                        <Text className="text-white">X</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
+                                        />
+                                    </View>
+
+                                    <TouchableOpacity onPress={() => openSourceModal('video')} style={styles.dropbox}>
+                                        <FontAwesome name="file-video-o" size={24} color="#234F68" style={styles.inputIcon} />
+                                        <Text style={{ textAlign: 'center' }}>Pick property videos</Text>
+                                    </TouchableOpacity>
+
                                 </View>
-
-                                <TouchableOpacity onPress={() => openSourceModal('video')} style={styles.dropbox}>
-                                    <FontAwesome name="file-video-o" size={24} color="#234F68" style={styles.inputIcon} />
-                                    <Text style={{ textAlign: 'center' }}>Pick property videos</Text>
-                                </TouchableOpacity>
-
                             </View>
 
                             {/* upload doc */}
-                            <View style={[styles.label, step4Errors.propertyDocuments && { color: 'red' }]}>
-                                <Text style={styles.label}>Upload Property Documents</Text>
-                                <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                    <FlatList
-                                        data={propertyDocuments}
-                                        horizontal
-                                        nestedScrollEnabled={true}
-                                        keyExtractor={(_, index) => index.toString()}
-                                        contentContainerStyle={styles.fileContainer}
-                                        renderItem={({ item, index }) => (
-                                            <View style={styles.thumbnailBox} className="border border-gray-300">
-                                                <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-                                                <Text className="text-center font-rubik-bold">Doc {index + 1}</Text>
+                            <View style={styles.stepContent}>
+                                <View style={[styles.label, step4Errors.propertyDocuments && { color: 'red' }]}>
+                                    <Text style={styles.label}>Upload Property Documents</Text>
+                                    <View style={{ flexGrow: 1, minHeight: 1 }}>
+                                        <FlatList
+                                            data={propertyDocuments}
+                                            horizontal
+                                            nestedScrollEnabled={true}
+                                            keyExtractor={(_, index) => index.toString()}
+                                            contentContainerStyle={styles.fileContainer}
+                                            renderItem={({ item, index }) => (
+                                                <View style={styles.thumbnailBox} className="border border-gray-300">
+                                                    <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+                                                    <Text className="text-center font-rubik-bold">Doc {index + 1}</Text>
 
-                                                <TouchableOpacity
-                                                    onPress={() => removeDocument(index, item.uri)}
-                                                    style={styles.deleteButton}>
-                                                    <Text className="text-white">X</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        )}
-                                    />
+                                                    <TouchableOpacity
+                                                        onPress={() => removeDocument(index, item.uri)}
+                                                        style={styles.deleteButton}>
+                                                        <Text className="text-white">X</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
+                                        />
+                                    </View>
+                                    <TouchableOpacity onPress={pickDocument} style={styles.dropbox}>
+                                        <FontAwesome name="file-pdf-o" size={24} color="#234F68" style={styles.inputIcon} />
+                                        <Text style={{ textAlign: 'center' }}>Pick property documents</Text>
+                                    </TouchableOpacity>
                                 </View>
-                                <TouchableOpacity onPress={pickDocument} style={styles.dropbox}>
-                                    <FontAwesome name="file-pdf-o" size={24} color="#234F68" style={styles.inputIcon} />
-                                    <Text style={{ textAlign: 'center' }}>Pick property documents</Text>
-                                </TouchableOpacity>
                             </View>
 
                             {/* upload marster plan */}

@@ -1,10 +1,9 @@
-import { Tabs, useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from "react-native-reanimated";
+// app/(root)/(tabs)/_layout.jsx
+import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useEffect } from "react";
-import { useUser } from '@/context/UserContext';
-import { View, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
 
 const TabIcon = ({ focused, name, title }) => {
     const scale = useSharedValue(1);
@@ -29,74 +28,63 @@ const TabIcon = ({ focused, name, title }) => {
     }, [focused, scale, translateY, dotOpacity]);
 
     return (
-        <View className="flex-grow flex-col items-center justify-center h-full">
+        <Animated.View className="flex-grow flex-col items-center justify-center h-full">
             <Animated.View style={animatedIconStyle}>
                 <FontAwesome
                     name={name}
                     size={24}
-                    color={focused ? "#234F68" : "#666876"}
+                    color={focused ? '#234F68' : '#666876'}
                 />
             </Animated.View>
             <Animated.View style={[{ marginTop: 4 }, animatedDotStyle]}>
                 {focused && (
-                    <View
+                    <Animated.View
                         style={{
                             width: 6,
                             height: 6,
                             borderRadius: 3,
-                            backgroundColor: "#234F68",
+                            backgroundColor: '#234F68',
                         }}
                     />
                 )}
             </Animated.View>
-        </View>
+        </Animated.View>
     );
 };
 
 const TabsLayout = () => {
     const insets = useSafeAreaInsets();
-    const { userType, loading } = useUser();
-    const router = useRouter();
 
-    // Define tab configurations
     const tabsConfig = [
-        { name: "home", title: "Home", icon: "compass" },
-        { name: "myassets", title: "My Assets", icon: "building-o" },
-        { name: "mapview", title: "Map", icon: "map-o" },
-        { name: "addlisting", title: "Add Property", icon: "plus-square-o" },
-        { name: "dashboard", title: "Dashboard", icon: "user-o" },
+        { name: 'home', title: 'Home', icon: 'compass' },
+        { name: 'myassets', title: 'My Assets', icon: 'building-o' },
+        { name: 'mapview', title: 'Map', icon: 'map-o' },
+        { name: 'addlisting', title: 'Add Property', icon: 'plus-square-o' },
+        { name: 'dashboard', title: 'Dashboard', icon: 'user-o' },
     ];
-
-    // Render a loading screen within the Tabs navigator
-    if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa' }}>
-                <ActivityIndicator size="large" color="#234F68" />
-            </View>
-        );
-    }
 
     return (
         <Tabs
             screenOptions={{
                 tabBarShowLabel: false,
                 tabBarStyle: {
-                    backgroundColor: "#ffffff",
-                    position: "absolute",
+                    backgroundColor: '#ffffff',
+                    position: 'absolute',
                     borderTopWidth: 0,
                     elevation: 10,
-                    shadowColor: "#000",
+                    shadowColor: '#000',
                     shadowOffset: { width: 0, height: -4 },
                     shadowOpacity: 0.2,
                     shadowRadius: 8,
-                    height: 50 + insets.bottom,
-                    paddingBottom: insets.bottom,
+                    height: 70,
                     paddingTop: 20,
                     borderRadius: 25,
                     marginHorizontal: 10,
                     marginBottom: 12,
                 },
+                tabBarHideOnKeyboard: true,
             }}
+            sceneContainerStyle={{ backgroundColor: '#fafafa' }}
         >
             {tabsConfig.map((tab) => (
                 <Tabs.Screen
