@@ -209,7 +209,7 @@ const Search = () => {
                         />
                     </View>
 
-                    <Text style={styles.label}>Filter property by</Text>
+                    <Text style={styles.label}>{t('filter_property_by')}</Text>
                     <View style={styles.propertyForContainer}>
                         {["Sell", "Rent"].map((option) => {
                             const isSelected = selectedPropertyFor === option;

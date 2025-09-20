@@ -328,10 +328,10 @@ const Home = () => {
                                         <Ionicons name="home-outline" size={30} color="white" />
                                         <View className="ms-3">
                                             <Text className="text-white font-semibold text-base">
-                                                View Property Leads
+                                                {t('view_property_leads')} {/* Updated */}
                                             </Text>
                                             <Text className="text-white/80 text-xs mt-1">
-                                                Track and manage enquiries
+                                                {t('track_and_manage_enquiries')} {/* Updated */}
                                             </Text>
                                         </View>
                                     </View>
@@ -348,10 +348,10 @@ const Home = () => {
                                         <MaterialCommunityIcons name="bank-outline" size={30} color="white" />
                                         <View className="ms-3">
                                             <Text className="text-white font-semibold text-base">
-                                                View Loan Enquiries
+                                                {t('view_loan_enquiries')} {/* Updated */}
                                             </Text>
                                             <Text className="text-white/80 text-xs mt-1">
-                                                Check client loan requests
+                                                {t('check_client_loan_requests')} {/* Updated */}
                                             </Text>
                                         </View>
                                     </View>
@@ -457,7 +457,7 @@ const Home = () => {
                                     <Text
                                         className={`text-xl ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-bold' : 'font-rubik-bold'} text-black-300`}
                                     >
-                                        Upcoming Projects
+                                        {t('upcoming_projects')}
                                     </Text>
                                     {/* <TouchableOpacity onPress={() => router.push('properties/explore')}>
                                         <Text

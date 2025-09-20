@@ -9,55 +9,73 @@ const NotResponded = ({ enquiries }) => {
     const router = useRouter();
 
     const renderEnquiry = ({ item }) => {
-            return (
-                <TouchableOpacity
-                    style={styles.card}
-                    onPress={() => router.push(`/CRM/${item.id}`)}
-                    activeOpacity={0.8}
-                >
-                    <View style={styles.cardHeader}>
-                        <View>
-                            <Text style={styles.cardLabel}>{t('Name')}:</Text>
-                            <Text style={[styles.cardTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
-                                {item.name || t('unknown')}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text style={styles.cardLabel}>{t('Date')}:</Text>
-                            <Text style={[styles.cardDate, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                                {new Date(item.created_at).toLocaleDateString()}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text style={styles.cardLabel}>{t('Category')}:</Text>
-                            <Text style={[styles.cardText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                                {item.housecategory || t('notAvailable')}
-                            </Text>
-                        </View>
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push(`/CRM/${item.id}`)}
+                activeOpacity={0.8}
+            >
+                <View style={styles.cardHeader}>
+                    <View>
+                        <Text style={styles.cardLabel}>{t('name')}</Text>
+                        <Text style={[
+                            styles.cardTitle,
+                            { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }
+                        ]}>
+                            {String(item?.name || t('unknown'))}
+                        </Text>
                     </View>
-                    <View style={styles.cardRow}>
-                        <View>
-                            <Text style={styles.cardLabel}>{t('City')}:</Text>
-                            <Text style={[styles.cardText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                                {item.inwhichcity || t('notAvailable')}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text style={styles.cardLabel}>{t('Property For')}:</Text>
-                            <Text style={[styles.cardText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                                {(item.propertyfor !== 'Rent' ? 'Sell' : 'Rent') || t('notSpecified')}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text style={styles.cardLabel}>{t('Status')}:</Text>
-                            <Text style={[styles.cardText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                                {item.status || t('notAvailable')}
-                            </Text>
-                        </View>
+                    <View>
+                        <Text style={styles.cardLabel}>{t('bidDate')}</Text>
+                        <Text style={[
+                            styles.cardDate,
+                            { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }
+                        ]}>
+                            {item?.created_at ? new Date(item.created_at).toLocaleDateString() : t('notAvailable')}
+                        </Text>
                     </View>
-                </TouchableOpacity>
-            );
-        };
+                    <View>
+                        <Text style={styles.cardLabel}>{t('category')}</Text>
+                        <Text style={[
+                            styles.cardText,
+                            { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }
+                        ]}>
+                            {String(item?.housecategory || t('notAvailable'))}
+                        </Text>
+                    </View>
+                </View>
+                <View style={styles.cardRow}>
+                    <View>
+                        <Text style={styles.cardLabel}>{t('city')}</Text>
+                        <Text style={[
+                            styles.cardText,
+                            { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }
+                        ]}>
+                            {String(item?.inwhichcity || t('notAvailable'))}
+                        </Text>
+                    </View>
+                    <View>
+                        <Text style={styles.cardLabel}>{t('property_for')}</Text>
+                        <Text style={[
+                            styles.cardText,
+                            { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }
+                        ]}>
+                            {String(item?.propertyfor === 'Rent' ? 'Rent' : item?.propertyfor ? 'Sell' : t('not_specified'))}
+                        </Text>
+                    </View>
+                    <View>
+                        <Text style={styles.cardLabel}>{t('status')}</Text>
+                        <Text style={[
+                            styles.cardText,
+                            { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }
+                        ]}>
+                            {String(item?.status || t('notAvailable'))}
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>

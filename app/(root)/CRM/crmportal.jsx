@@ -107,12 +107,12 @@ const CrmPortal = () => {
             const uniqueTypes = [...new Set(enquiries.map(e => e.housecategory).filter(Boolean))].sort();
 
             // Set cities and property types with "All" options
-            setCities([{ label: t('All Cities'), value: 'all' }, ...uniqueCities.map(c => ({ label: c, value: c }))]);
-            setPropertyTypes([{ label: t('All Types'), value: 'all' }, ...uniqueTypes.map(t => ({ label: t, value: t }))]);
+            setCities([{ label: t('all_cities'), value: 'all' }, ...uniqueCities.map(c => ({ label: c, value: c }))]);
+            setPropertyTypes([{ label: t('all_types'), value: 'all' }, ...uniqueTypes.map(t => ({ label: t, value: t }))]);
         } else {
             console.log('No enquiries available');
-            setCities([{ label: t('All Cities'), value: 'all' }]);
-            setPropertyTypes([{ label: t('All Types'), value: 'all' }]);
+            setCities([{ label: t('all_cities'), value: 'all' }]);
+            setPropertyTypes([{ label: t('all_types'), value: 'all' }]);
             setDynamicRoutes(initialRoutes);
         }
     }, [enquiries, t]);
@@ -181,11 +181,11 @@ const CrmPortal = () => {
         const finalCount = filtered.filter(e => e.status?.toLowerCase() === 'final').length;
 
         setDynamicRoutes([
-            { key: 'NewLead', title: `${capitalize(t('New'))} (${newCount})` },
-            { key: 'QualifiedLead', title: `${capitalize(t('Qualified'))} (${qualifiedCount})` },
-            { key: 'NotResponded', title: `${capitalize(t('No Reply'))} (${notRespondedCount})` },
-            { key: 'Won', title: `${capitalize(t('Won'))} (${wonCount})` },
-            { key: 'Final', title: `${capitalize(t('Final'))} (${finalCount})` },
+            { key: 'NewLead', title: `${capitalize(t('new'))} (${newCount})` },
+            { key: 'QualifiedLead', title: `${capitalize(t('qualified'))} (${qualifiedCount})` },
+            { key: 'NotResponded', title: `${capitalize(t('notResponded'))} (${notRespondedCount})` },
+            { key: 'Won', title: `${capitalize(t('won'))} (${wonCount})` },
+            { key: 'Final', title: `${capitalize(t('final'))} (${finalCount})` },
         ]);
         filterSheetRef.current?.close();
     };
@@ -302,7 +302,7 @@ const CrmPortal = () => {
                             : { fontFamily: 'Rubik-Bold' },
                     ]}
                 >
-                    {t('CRM Portal')}
+                    {t('crm_portal')}
                 </Text>
                 <TouchableOpacity onPress={fetchUserEnquiries} style={styles.refreshButton}>
                     <MaterialIcons name="refresh" size={moderateScale(24)} color="#234F68" />
@@ -323,7 +323,7 @@ const CrmPortal = () => {
                                 i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
                             ]}
                         >
-                            {t('All')}
+                            {t('all')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -337,7 +337,7 @@ const CrmPortal = () => {
                                 i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
                             ]}
                         >
-                            {t('Sell')}
+                            {t('sell')}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -351,7 +351,7 @@ const CrmPortal = () => {
                                 i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
                             ]}
                         >
-                            {t('Rent')}
+                            {t('rent')}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -366,7 +366,7 @@ const CrmPortal = () => {
                             i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
                         ]}
                     >
-                        {t('Filters')}
+                        {t('filters')}
                         {(tempFilter !== 'All' || tempSearchTerm !== '' || tempFromDate !== null || tempToDate !== null ||
                             tempSelectedCity !== 'all' || tempSelectedPropertyType !== 'all') && (
                                 <Text style={styles.filterCount}>
@@ -388,7 +388,7 @@ const CrmPortal = () => {
             {loading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#234F68" />
-                    <Text style={styles.loadingText}>{t('loading...')}</Text>
+                    <Text style={styles.loadingText}>{t('loading')}</Text>
                 </View>
             ) : error ? (
                 <View style={styles.errorCard}>
@@ -428,23 +428,23 @@ const CrmPortal = () => {
                             i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Bold' } : { fontFamily: 'Rubik-Bold' },
                         ]}
                     >
-                        {t('Advanced Filters')}
+                        {t('advanced_filters')}
                     </Text>
 
-                    <Text style={styles.filterLabel}>{t('Search')}</Text>
+                    <Text style={styles.filterLabel}>{t('search')}</Text>
                     <TextInput
                         style={styles.searchInput}
-                        placeholder={t('Search leads...')}
+                        placeholder={t('search_leads')}
                         value={tempSearchTerm}
                         onChangeText={setTempSearchTerm}
                         placeholderTextColor="#9CA3AF"
                     />
 
-                    <Text style={styles.filterLabel}>{t('Date Range')}</Text>
+                    <Text style={styles.filterLabel}>{t('date_range')}</Text>
                     <View style={styles.dateContainer}>
                         <TouchableOpacity style={styles.dateButton} onPress={() => setShowFromDatePicker(true)}>
                             <Text style={styles.dateText}>
-                                {tempFromDate ? tempFromDate.toLocaleDateString() : t('From Date')}
+                                {tempFromDate ? tempFromDate.toLocaleDateString() : t('from_date')}
                             </Text>
                         </TouchableOpacity>
                         {showFromDatePicker && (
@@ -460,7 +460,7 @@ const CrmPortal = () => {
                         )}
                         <TouchableOpacity style={styles.dateButton} onPress={() => setShowToDatePicker(true)}>
                             <Text style={styles.dateText}>
-                                {tempToDate ? tempToDate.toLocaleDateString() : t('To Date')}
+                                {tempToDate ? tempToDate.toLocaleDateString() : t('to_date')}
                             </Text>
                         </TouchableOpacity>
                         {showToDatePicker && (
@@ -476,7 +476,7 @@ const CrmPortal = () => {
                         )}
                     </View>
 
-                    <Text style={styles.filterLabel}>{t('City')}</Text>
+                    <Text style={styles.filterLabel}>{t('city')}</Text>
                     <RNPickerSelect
                         onValueChange={setTempSelectedCity}
                         items={cities}
@@ -485,7 +485,7 @@ const CrmPortal = () => {
                         // placeholder={'Select city'}
                     />
 
-                    <Text style={styles.filterLabel}>{t('Property Type')}</Text>
+                    <Text style={styles.filterLabel}>{t('propertyType')}</Text>
                     <RNPickerSelect
                         onValueChange={setTempSelectedPropertyType}
                         items={propertyTypes}
@@ -505,7 +505,7 @@ const CrmPortal = () => {
                                     i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
                                 ]}
                             >
-                                {t('Apply')}
+                                {t('apply')}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -518,7 +518,7 @@ const CrmPortal = () => {
                                     i18n.language === 'hi' ? { fontFamily: 'NotoSerifDevanagari-Medium' } : { fontFamily: 'Rubik-Medium' },
                                 ]}
                             >
-                                {t('Reset')}
+                                {t('reset')}
                             </Text>
                         </TouchableOpacity>
                     </View>

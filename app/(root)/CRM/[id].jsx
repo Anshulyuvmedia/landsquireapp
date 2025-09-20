@@ -40,12 +40,13 @@ const LeadDetail = () => {
     const [newNoteDescription, setNewNoteDescription] = useState('');
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
+    // Pre-compute translated labels for statuses to avoid runtime issues
     const statuses = [
-        { label: t('New'), value: 'New' },
-        { label: t('Qualified'), value: 'Qualified' },
-        { label: t('Not Responded'), value: 'Not Responded' },
-        { label: t('Won'), value: 'Won' },
-        { label: t('Final'), value: 'Final' },
+        { label: t('new'), value: 'New' },
+        { label: t('qualified'), value: 'Qualified' },
+        { label: t('notResponded'), value: 'Not Responded' },
+        { label: t('won'), value: 'Won' },
+        { label: t('final'), value: 'Final' },
     ];
 
     useEffect(() => {
@@ -87,10 +88,10 @@ const LeadDetail = () => {
                         : [],
                 });
             } else {
-                setError(t('leadNotFound'));
+                setError(t('lead_not_found'));
             }
         } catch (err) {
-            setError(t('errorFetchingLead'));
+            setError(t('error_fetching_lead'));
             console.error('Error fetching lead:', {
                 message: err.message,
                 response: err.response?.data,
@@ -115,13 +116,13 @@ const LeadDetail = () => {
 
     const saveChanges = async () => {
         if (!lead) {
-            setStatusMessage(t('leadNotLoaded'));
+            setStatusMessage(t('lead_not_loaded'));
             setStatusType('error');
             setShowStatusModal(true);
             return;
         }
         if (!newNoteDescription && !selectedStatus) {
-            setStatusMessage(t('noChangesProvided'));
+            setStatusMessage(t('no_changes_provided'));
             setStatusType('error');
             setShowStatusModal(true);
             return;
@@ -159,11 +160,11 @@ const LeadDetail = () => {
                 setNewNoteDescription('');
                 setSelectedStatus(null);
                 setShowManageModal(false);
-                setStatusMessage(t('Follow-up Added and Status Updated'));
+                setStatusMessage(t('followup_added_and_status_updated'));
                 setStatusType('success');
                 setShowStatusModal(true);
             } else {
-                throw new Error(response.data.error || t('errorSavingChanges'));
+                throw new Error(response.data.error || t('error_saving_changes'));
             }
         } catch (err) {
             console.error('Error saving changes:', {
@@ -171,7 +172,7 @@ const LeadDetail = () => {
                 response: err.response?.data,
                 status: err.response?.status,
             });
-            setStatusMessage(err.response?.data?.error || err.message || t('errorSavingChanges'));
+            setStatusMessage(err.response?.data?.error || err.message || t('error_saving_changes'));
             setStatusType('error');
             setShowStatusModal(true);
         } finally {
@@ -194,7 +195,7 @@ const LeadDetail = () => {
         return (
             <View style={styles.errorContainer}>
                 <Text style={[styles.errorText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                    {error || t('leadNotFound')}
+                    {error || t('lead_not_found')}
                 </Text>
             </View>
         );
@@ -208,53 +209,53 @@ const LeadDetail = () => {
                         <MaterialIcons name="arrow-back" size={moderateScale(24)} color="#1F3A5F" />
                     </TouchableOpacity>
                     <Text style={[styles.headerTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
-                        {t('Lead Details')}
+                        {t('lead_details')}
                     </Text>
                 </View>
 
                 {/* Lead Information */}
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-SemiBold' : 'Rubik-SemiBold' }]}>
-                        {t('Lead Information')}
+                        {t('lead_information')}
                     </Text>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('Name')}:</Text>
+                        <Text style={styles.detailLabel}>{t('name')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {lead.name || t('unknown')}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('Email')}:</Text>
+                        <Text style={styles.detailLabel}>{t('email')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {lead.email || t('notAvailable')}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('Mobile')}:</Text>
+                        <Text style={styles.detailLabel}>{t('mobile')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {lead.mobilenumber || t('notAvailable')}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('City')}:</Text>
+                        <Text style={styles.detailLabel}>{t('city')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {lead.inwhichcity || t('notAvailable')}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('Category')}:</Text>
+                        <Text style={styles.detailLabel}>{t('category')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {lead.housecategory || t('notAvailable')}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('Property For')}:</Text>
+                        <Text style={styles.detailLabel}>{t('property_for')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                            {(lead.propertyfor !== 'Rent' ? 'Sell' : 'Rent') || t('notSpecified')}
+                            {(lead.propertyfor !== 'Rent' ? 'Sell' : 'Rent') || t('not_specified')}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>{t('Status')}:</Text>
+                        <Text style={styles.detailLabel}>{t('status')}</Text>
                         <Text style={[styles.detailValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {lead.status || t('notAvailable')}
                         </Text>
@@ -265,7 +266,7 @@ const LeadDetail = () => {
                 {lead.propertybid && lead.propertybid.length > 0 && (
                     <View style={styles.section}>
                         <Text style={[styles.sectionTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-SemiBold' : 'Rubik-SemiBold' }]}>
-                            {t('Bid Details')}
+                            {t('bid_details')}
                         </Text>
                         {lead.propertybid.map((bid, idx) => (
                             <View key={idx} style={styles.bidItem}>
@@ -289,7 +290,7 @@ const LeadDetail = () => {
                 {/* Action Buttons */}
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-SemiBold' : 'Rubik-SemiBold' }]}>
-                        {t('Actions')}
+                        {t('actions')}
                     </Text>
                     <View style={styles.buttonContainer}>
                         <View style={styles.buttonRow}>
@@ -313,7 +314,7 @@ const LeadDetail = () => {
                             >
                                 <Feather name="phone" size={moderateScale(16)} color="#fff" style={styles.buttonIcon} />
                                 <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('Call Now')}
+                                    {t('call_now')}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -324,7 +325,7 @@ const LeadDetail = () => {
                             >
                                 <FontAwesome5 name="whatsapp" size={moderateScale(16)} color="#fff" style={styles.buttonIcon} />
                                 <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('Whatsapp')}
+                                    {t('whatsapp')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -336,7 +337,7 @@ const LeadDetail = () => {
                             >
                                 <MaterialIcons name="notes" size={moderateScale(16)} color="#fff" style={styles.buttonIcon} />
                                 <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('View Notes')}
+                                    {t('view_notes')}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -346,7 +347,7 @@ const LeadDetail = () => {
                             >
                                 <MaterialIcons name="edit" size={moderateScale(16)} color="#fff" style={styles.buttonIcon} />
                                 <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('Update Lead')}
+                                    {t('update_lead')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -364,7 +365,7 @@ const LeadDetail = () => {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={[styles.modalTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
-                            {t('Notes Timeline')}
+                            {t('notes_timeline')}
                         </Text>
                         <ScrollView style={styles.notesScroll}>
                             {lead.followupdetails?.length > 0 ? (
@@ -392,7 +393,7 @@ const LeadDetail = () => {
                                 ))
                             ) : (
                                 <Text style={[styles.noNotesText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                                    {t('noNotes')}
+                                    {t('no_notes')}
                                 </Text>
                             )}
                         </ScrollView>
@@ -403,7 +404,7 @@ const LeadDetail = () => {
                                 activeOpacity={0.7}
                             >
                                 <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('Close')}
+                                    {t('close')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -421,31 +422,30 @@ const LeadDetail = () => {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={[styles.modalTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
-                            {t('Manage Lead')}
+                            {t('manage_lead')}
                         </Text>
                         <Text style={[styles.inputLabel, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                            {t('Update Status')}
+                            {t('update_status')}
                         </Text>
                         <RNPickerSelect
                             onValueChange={(value) => setSelectedStatus(value)}
                             items={statuses}
                             style={pickerSelectStyles}
-                            placeholder={{ label: t('Select Status'), value: null }}
+                            placeholder={{ label: t('select_status'), value: null }}
                             value={selectedStatus}
                         />
                         <Text style={[styles.inputLabel, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                            {t('Add Note')}
+                            {t('add_note')}
                         </Text>
                         <TextInput
                             style={styles.noteInput}
-                            placeholder={t('Enter note description')}
+                            placeholder={t('enter_note_description')}
                             placeholderTextColor="#9CA3AF"
                             value={newNoteDescription}
                             onChangeText={setNewNoteDescription}
                             multiline
                         />
-                        <View style={[styles.modalButtons , { marginBottom: insets.bottom }]}>
-
+                        <View style={[styles.modalButtons, { marginBottom: insets.bottom }]}>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.cancelButton]}
                                 onPress={() => {
@@ -456,7 +456,7 @@ const LeadDetail = () => {
                                 activeOpacity={0.7}
                             >
                                 <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                    {t('Cancel')}
+                                    {t('cancel')}
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -469,7 +469,7 @@ const LeadDetail = () => {
                                     <ActivityIndicator size="small" color="#FFFFFF" />
                                 ) : (
                                     <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                        {t('Save')}
+                                        {t('save')}
                                     </Text>
                                 )}
                             </TouchableOpacity>
@@ -485,7 +485,7 @@ const LeadDetail = () => {
                 animationType="fade"
                 onRequestClose={() => setShowStatusModal(false)}
             >
-                <View style={styles.modalContainer}>
+                <View style={[styles.modalContainer, { marginBottom: insets.bottom }]}>
                     <View style={[styles.statusModalContent, statusType === 'success' ? styles.successModal : styles.errorModal]}>
                         <View style={styles.statusIcon}>
                             <MaterialIcons
@@ -495,7 +495,7 @@ const LeadDetail = () => {
                             />
                         </View>
                         <Text style={[styles.statusModalTitle, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
-                            {statusType === 'success' ? t('Success') : t('Error')}
+                            {statusType === 'success' ? t('success') : t('error')}
                         </Text>
                         <Text style={[styles.statusModalMessage, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                             {statusMessage}
@@ -506,7 +506,7 @@ const LeadDetail = () => {
                             activeOpacity={0.7}
                         >
                             <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                {t('OK')}
+                                {t('ok')}
                             </Text>
                         </TouchableOpacity>
                     </View>

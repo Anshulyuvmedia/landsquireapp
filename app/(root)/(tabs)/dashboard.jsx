@@ -133,6 +133,15 @@ const Dashboard = () => {
     }
   };
 
+  const changeLanguage = async (lang) => {
+    try {
+      await i18n.changeLanguage(lang);
+      await AsyncStorage.setItem('appLanguage', lang);
+    } catch (error) {
+      console.error('Error changing language:', error);
+    }
+  };
+
   // useEffect(() => {
   //   console.log('Dashboard: Navigation state:', navigation.getState());
   // }, [navigation]);
@@ -265,7 +274,7 @@ const Dashboard = () => {
             {userData?.user_type !== 'user' && (
               <MenuItem
                 icon="support-agent"
-                title="CRM"
+                title={t('crm_portal')}
                 onPress={() => handleNavigate('CRM/crmportal')}
               />
             )}
@@ -284,14 +293,14 @@ const Dashboard = () => {
             {userData?.user_type !== 'bankagent' && (
               <MenuItem
                 icon="house-siding"
-                title="Rented Property"
+                title={t('rentedproperties')}
                 onPress={() => handleNavigate('Rent/rentscreen')}
               />
             )}
             {userData?.user_type === 'bankagent' && (
               <MenuItem
                 icon="checklist-rtl"
-                title={t('Loan Leads')}
+                title={t('loanleads')}
                 onPress={() => handleNavigate('dashboard/loanleads')}
               />
             )}
