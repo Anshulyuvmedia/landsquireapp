@@ -12,12 +12,12 @@ import 'react-native-get-random-values';
 import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import { v4 as uuidv4 } from 'uuid';
+import { getUUIDSync } from '@/utils/uuid';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const RentProperty = () => {
-    const [sessionTokenCity, setSessionTokenCity] = useState(uuidv4());
-    const [sessionTokenLocation, setSessionTokenLocation] = useState(uuidv4());
+    const [sessionTokenCity, setSessionTokenCity] = useState(getUUIDSync());
+    const [sessionTokenLocation, setSessionTokenLocation] = useState(getUUIDSync());
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY;
     const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '', price: '' });
     const [step3Data, setStep3Data] = useState({ bathroom: '', floor: '', city: '', officeaddress: '', bedroom: '' });
@@ -399,7 +399,7 @@ const RentProperty = () => {
                     setStep3Data({ ...step3Data, city: selectedCity });
                     setSearchTermCity(selectedCity);
                     setCitySuggestions([]);
-                    setSessionTokenCity(uuidv4());
+                    setSessionTokenCity(getUUIDSync());
                 } else {
                     setMessage({
                         type: 'error',
@@ -485,7 +485,7 @@ const RentProperty = () => {
                 });
                 setSearchTermLocation(response.data.result.formatted_address);
                 setLocationSuggestions([]);
-                setSessionTokenLocation(uuidv4());
+                setSessionTokenLocation(getUUIDSync());
             } else {
                 setMessage({
                     type: 'error',

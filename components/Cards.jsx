@@ -259,7 +259,7 @@ const MapCard = ({ item, onPress, onView, map }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="w-[320px] h-[130px] rounded-[30px] bg-[#f5f4f8] flex-row overflow-hidden"
+      className="w-100 h-[130px] rounded-[30px] bg-[#f5f4f8] flex-row overflow-hidden"
     >
       {/* Image Section */}
       <View className="w-[150px] h-full relative p-2">

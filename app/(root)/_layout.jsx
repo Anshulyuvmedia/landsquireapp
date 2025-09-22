@@ -11,7 +11,7 @@ const RootLayout = () => {
             }}
         >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="dashboard/editprofile" options={{ headerShown: false }} />
+            <Stack.Screen name="editprofile" options={{ headerShown: false }} />
             <Stack.Screen name="dashboard/loanleads" options={{ headerShown: false }} />
             <Stack.Screen name="CRM/crmportal" options={{ headerShown: false }} />
             <Stack.Screen name="Rent/rentscreen" options={{ headerShown: false }} />
@@ -23,6 +23,7 @@ const RootLayout = () => {
             <Stack.Screen name="cookiespolicy" options={{ headerShown: false }} />
             <Stack.Screen name="contentandlistingguidelines" options={{ headerShown: false }} />
             <Stack.Screen name="dataretentionanddeletionpolicy" options={{ headerShown: false }} />
+            <Stack.Screen name="profilesettings" options={{ headerShown: false }} />
         </Stack>
     );
 };

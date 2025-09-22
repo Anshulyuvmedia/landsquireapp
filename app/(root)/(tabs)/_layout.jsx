@@ -59,7 +59,7 @@ const TabsLayout = () => {
         { name: 'myassets', title: 'My Assets', icon: 'building-o' },
         { name: 'mapview', title: 'Map', icon: 'map-o' },
         { name: 'addlisting', title: 'Add Property', icon: 'plus-square-o' },
-        { name: 'dashboard', title: 'Dashboard', icon: 'user-o' },
+        { name: 'settings', title: 'Settings', icon: 'user-o' },
     ];
 
     const { width } = Dimensions.get('window');

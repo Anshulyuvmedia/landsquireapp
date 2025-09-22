@@ -181,10 +181,20 @@ const resources = {
             upcoming_projects: 'Upcoming Projects',
             all_properties_seen: 'You have seen all the properties',
             try_again: 'Try Again',
+            // map view
+            display_mode: 'Display Mode',
+            price_range: 'Price Range',
+            area_range: 'Area Range',
+
         },
     },
     hi: {
         translation: {
+            // Map view
+            display_mode: 'प्रदर्शन मोड',
+            price_range: 'मूल्य सीमा',
+            area_range: 'क्षेत्र सीमा',
+
             // Dashboard screen translations
             dashboard: 'डैशबोर्ड',
             notifications: 'सूचनाएँ',

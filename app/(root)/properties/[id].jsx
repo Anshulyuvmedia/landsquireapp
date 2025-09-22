@@ -23,7 +23,7 @@ import BidSheet from "../../../components/PropertyDetails/BidSheet";
 import FeedbackSheet from "../../../components/PropertyDetails/FeedbackSheet";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
-import { v4 as uuidv4 } from 'uuid';
+import { getUUIDSync } from '@/utils/uuid';
 
 const PropertyDetails = () => {
     const propertyId = useLocalSearchParams().id;
@@ -318,7 +318,7 @@ const PropertyDetails = () => {
             // Check for existing visitor token
             let visitorToken = await AsyncStorage.getItem('visitor_token');
             if (!visitorToken) {
-                visitorToken = uuidv4();
+                visitorToken = getUUIDSync();
                 await AsyncStorage.setItem('visitor_token', visitorToken);
             }
 

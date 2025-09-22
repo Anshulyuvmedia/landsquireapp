@@ -1,4 +1,4 @@
-// app/(root)/(tabs)/dashboard.js
+// app/(root)/(tabs)/settings.js
 import { View, Text, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator, Switch, RefreshControl } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, useNavigation, useFocusEffect } from 'expo-router';
@@ -115,7 +115,7 @@ const Dashboard = () => {
 
   const handleEditProfile = () => {
     // console.log('Dashboard: Navigating to /dashboard/editprofile');
-    navigation.navigate('dashboard/editprofile');
+    navigation.navigate('editprofile');
   };
 
   const handleNavigate = (path) => {
@@ -255,8 +255,8 @@ const Dashboard = () => {
                       {t('city')}: {userData?.city || 'N/A'}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={handleEditProfile}
+                  {/* <TouchableOpacity
+                    onPress={() => handleNavigate('editprofile')}
                     className="bg-primary-200 px-3 py-1.5 rounded-md"
                   >
                     <Text
@@ -264,7 +264,7 @@ const Dashboard = () => {
                     >
                       {t('editProfile')}
                     </Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </View>
             </View>
@@ -278,6 +278,7 @@ const Dashboard = () => {
                 onPress={() => handleNavigate('CRM/crmportal')}
               />
             )}
+
             <MenuItem
               icon="notifications-none"
               title={t('notifications')}
@@ -304,7 +305,7 @@ const Dashboard = () => {
                 onPress={() => handleNavigate('dashboard/loanleads')}
               />
             )}
-            <View className="flex-row items-center justify-between py-2.5 px-3 bg-white rounded-lg mb-1.5 shadow-sm">
+            {/* <View className="flex-row items-center justify-between py-2.5 px-3 bg-white rounded-lg mb-1.5 shadow-sm">
               <View className="flex-row items-center">
                 <MaterialIcons name="language" size={moderateScale(18, 0.3)} color="#234F68" />
                 <Text
@@ -332,17 +333,21 @@ const Dashboard = () => {
                   HI
                 </Text>
               </View>
-            </View>
+            </View> */}
           </View>
-
-          <View className="mb-3">
+          <MenuItem
+            icon="settings-suggest"
+            title={t('User Settings')}
+            onPress={() => handleNavigate('profilesettings')}
+          />
+          {/* <View className="mb-3">
             <MenuItem
               icon="logout"
               title={t('logout')}
               onPress={handleLogout}
               textColor="#F75555"
             />
-          </View>
+          </View> */}
         </View>
       </ScrollView>
     </View>

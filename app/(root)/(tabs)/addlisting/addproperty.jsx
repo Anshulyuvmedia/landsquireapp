@@ -14,12 +14,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import { v4 as uuidv4 } from 'uuid';
+import { getUUIDSync } from '@/utils/uuid';
+
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const Addproperty = () => {
-    const [sessionTokenCity, setSessionTokenCity] = useState(uuidv4()); // Session token for city search
-    const [sessionTokenLocation, setSessionTokenLocation] = useState(uuidv4()); // Session token for location search
+    const [sessionTokenCity, setSessionTokenCity] = useState(getUUIDSync()); // Session token for city search
+    const [sessionTokenLocation, setSessionTokenLocation] = useState(getUUIDSync()); // Session token for location search
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
     const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '' });
     const [step2Data, setStep2Data] = useState({ approxrentalincome: '', historydate: [], price: '' });
@@ -511,7 +512,7 @@ const Addproperty = () => {
                     setStep3Data({ ...step3Data, city: selectedCity });
                     setSearchTermCity(selectedCity);
                     setCitySuggestions([]);
-                    setSessionTokenCity(uuidv4());
+                    setSessionTokenCity(getUUIDSync());
                 } else {
                     setMessage({
                         type: 'error',
@@ -597,7 +598,7 @@ const Addproperty = () => {
                 });
                 setSearchTermLocation(response.data.result.formatted_address);
                 setLocationSuggestions([]);
-                setSessionTokenLocation(uuidv4());
+                setSessionTokenLocation(getUUIDSync());
             } else {
                 setMessage({
                     type: 'error',

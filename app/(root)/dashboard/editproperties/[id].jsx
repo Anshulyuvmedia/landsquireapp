@@ -15,12 +15,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { v4 as uuidv4 } from 'uuid';
+import { getUUIDSync } from '@/utils/uuid';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const Editproperty = () => {
-    const [sessionTokenCity, setSessionTokenCity] = useState(uuidv4()); // Session token for city search
-    const [sessionTokenLocation, setSessionTokenLocation] = useState(uuidv4());
+    const [sessionTokenCity, setSessionTokenCity] = useState(getUUIDSync()); // Session token for city search
+    const [sessionTokenLocation, setSessionTokenLocation] = useState(getUUIDSync());
     const { id } = useLocalSearchParams();
     const navigation = useNavigation();
 
@@ -642,7 +642,7 @@ const Editproperty = () => {
                     setStep3Data({ ...step3Data, city: selectedCity });
                     setSearchTermCity(selectedCity);
                     setCitySuggestions([]);
-                    setSessionTokenCity(uuidv4());
+                    setSessionTokenCity(getUUIDSync());
                 } else {
                     setMessage({
                         type: 'error',
@@ -728,7 +728,7 @@ const Editproperty = () => {
                 });
                 setSearchTermLocation(response.data.result.formatted_address);
                 setLocationSuggestions([]);
-                setSessionTokenLocation(uuidv4());
+                setSessionTokenLocation(getUUIDSync());
             } else {
                 setMessage({
                     type: 'error',

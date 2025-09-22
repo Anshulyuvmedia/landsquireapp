@@ -14,7 +14,7 @@ import PropertyMap from "../../../components/PropertyDetails/PropertyMap";
 import MasterPlanSection from "../../../components/PropertyDetails/MasterPlanSection";
 import LightboxModal from "../../../components/PropertyDetails/LightboxModal";
 import images from "@/constants/images";
-import { v4 as uuidv4 } from 'uuid';
+import { getUUIDSync } from '@/utils/uuid';
 import BottomBar from "../../../components/PropertyDetails/BottomBar";
 import FeedbackSheet from "../../../components/PropertyDetails/FeedbackSheet";
 
@@ -203,7 +203,7 @@ const ProjectDetails = () => {
         try {
             let visitorToken = await AsyncStorage.getItem('visitor_token');
             if (!visitorToken) {
-                visitorToken = uuidv4();
+                visitorToken = getUUIDSync();
                 await AsyncStorage.setItem('visitor_token', visitorToken);
             }
 

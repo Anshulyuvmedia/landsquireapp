@@ -13,7 +13,7 @@ import LocationScroll from '@/components/LocationScroll';
 import BrokerScroll from '@/components/BrokerScroll';
 import { useTranslation } from 'react-i18next';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { v4 as uuidv4 } from 'uuid';
+import { getUUIDSync } from '@/utils/uuid';
 
 const PADDING_HORIZONTAL = scale(15);
 const GAP = scale(10);
@@ -129,7 +129,7 @@ const Home = () => {
                     // Use the API-provided id if it exists and is a number; otherwise, fallback to UUID
                     let uniqueId = item.id && Number.isInteger(Number(item.id))
                         ? String(item.id) // Convert to string for consistency
-                        : uuidv4();
+                        : getUUIDSync();
                     if (idMap.has(uniqueId)) {
                         uniqueId = `${uniqueId}_${index}_${pageToFetch}`;
                         console.warn(`Duplicate ID detected, assigning new ID: ${uniqueId}`);
@@ -232,9 +232,9 @@ const Home = () => {
     }, []);
 
     const handleNavigation = () => {
-        // console.log('Home: Navigating to /dashboard');
-        // router.push('dashboard')
-        navigation.navigate('dashboard');
+        // console.log('Home: Navigating to /settings');
+        // router.push('settings')
+        navigation.navigate('settings');
     };
 
     return (

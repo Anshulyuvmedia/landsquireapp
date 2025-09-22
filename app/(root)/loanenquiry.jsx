@@ -216,7 +216,7 @@ const LoanEnquiry = () => {
             navigation.goBack();
         } else {
             // console.log('EditProfile: Cannot go back, navigating to dashboard');
-            router.navigate('/(root)/(tabs)/dashboard');
+            router.navigate('/(root)/(tabs)/settings');
         }
     };
 
