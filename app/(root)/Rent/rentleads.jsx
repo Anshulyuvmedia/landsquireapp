@@ -174,7 +174,7 @@ const RentLeads = () => {
                     </View>
                 </View>
                 <View style={styles.cardrow}>
-                    {(selectedEnquiry?.propertyfor === null || selectedEnquiry?.propertyfor === 'Sale') && (
+                    {(selectedEnquiry?.propertyfor === null || selectedEnquiry?.propertyfor === 'Sell') && (
                         <View>
                             <Text style={styles.cardLabel}>{t('Bid Amount')}:</Text>
                             <Text style={[styles.cardText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
@@ -394,7 +394,7 @@ const RentLeads = () => {
                                     {selectedEnquiry.status}
                                 </Text>
                             </View>
-                            {(selectedEnquiry?.propertyfor === null || selectedEnquiry?.propertyfor === 'Sale') && (
+                            {(selectedEnquiry?.propertyfor === null || selectedEnquiry?.propertyfor === 'Sell') && (
                                 renderBidHistory(selectedEnquiry?.propertybid)
                             )}
 

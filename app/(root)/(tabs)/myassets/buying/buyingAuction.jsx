@@ -45,7 +45,7 @@ const BuyingAuction = () => {
 
       if (response.data && response.data.myenquiries) {
         const parsedEnquiries = response.data.myenquiries
-          .filter(enquiry => enquiry.propertyfor === null || enquiry.propertyfor === 'Sale')
+          .filter(enquiry => enquiry.propertyfor === null || enquiry.propertyfor === 'Sell')
           .map(enquiry => {
             let bids = [];
 

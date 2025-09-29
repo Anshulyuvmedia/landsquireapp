@@ -38,11 +38,11 @@ const MySellingAuction = () => {
                     'User-Agent': 'LandSquireApp/1.0 (React Native)',
                 },
             });
-            // console.log('API Response:', response.data.brokerenquiries);
+            // console.log('API brokerenquiries:', response.data.brokerenquiries);
 
             if (response.data?.brokerenquiries) {
                 const parsedEnquiries = response.data.brokerenquiries
-                    .filter(enquiry => enquiry.propertyfor === null || enquiry.propertyfor === 'Sale')
+                    .filter(enquiry => enquiry.propertyfor === null || enquiry.propertyfor === 'Sell')
                     .map(enquiry => {
                         let bids = [];
 

@@ -293,6 +293,7 @@ const RentProperty = () => {
                 mediaTypes: ImagePicker.MediaTypeOptions.Videos,
                 allowsEditing: true,
                 quality: 0.5,
+                videoMaxDuration: 60, // ✅ Limit recording to 1 minute
             });
             if (!result?.canceled && result.assets?.length) {
                 setVideos(prevVideos => [

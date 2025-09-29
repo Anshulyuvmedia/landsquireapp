@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import icons from '@/constants/icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MySellingEnquiries = () => {
     const { t, i18n } = useTranslation();
@@ -17,6 +18,7 @@ const MySellingEnquiries = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedEnquiry, setSelectedEnquiry] = useState(null);
     const rbSheetRef = useRef();
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         fetchUserEnquiries();
@@ -277,7 +279,7 @@ const MySellingEnquiries = () => {
 
             <RBSheet
                 ref={rbSheetRef}
-                height={verticalScale(600)}
+                height={600 + insets.bottom}
                 openDuration={250}
                 customStyles={{
                     container: styles.rbSheet,

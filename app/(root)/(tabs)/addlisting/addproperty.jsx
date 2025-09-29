@@ -316,40 +316,56 @@ const Addproperty = () => {
 
     const pickVideo = async (source) => {
         setModalVisible(false);
-        const defaultThumbnail = typeof icons.videofile === "number" ? Image.resolveAssetSource(icons.videofile).uri : icons.videofile;
-        if (source === 'camera') {
+        const defaultThumbnail =
+            typeof icons.videofile === "number"
+                ? Image.resolveAssetSource(icons.videofile).uri
+                : icons.videofile;
+
+        if (source === "camera") {
             if (!(await requestPermissions(true))) return;
+
             let result = await ImagePicker.launchCameraAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Videos,
                 allowsEditing: true,
                 quality: 0.5,
+                videoMaxDuration: 60, // ✅ Limit recording to 1 minute
             });
-            if (!result?.canceled && result.assets?.length) {
-                setVideos(prevVideos => [
-                    ...prevVideos,
-                    {
-                        id: result.assets[0].uri,
-                        uri: result.assets[0].uri,
-                        thumbnailImages: defaultThumbnail,
-                    },
-                ]);
+
+            if (!result?.canceled) {
+                const videoAsset = result.assets?.[0] ?? { uri: result.uri };
+                if (videoAsset?.uri) {
+                    setVideos((prevVideos) => [
+                        ...prevVideos,
+                        {
+                            id: videoAsset.uri,
+                            uri: videoAsset.uri,
+                            thumbnailImages: defaultThumbnail,
+                        },
+                    ]);
+                }
             }
         } else {
             if (!(await requestPermissions())) return;
+
             let result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Videos,
                 allowsMultipleSelection: true,
             });
+
             if (!result?.canceled && result.assets?.length) {
-                const selectedVideos = result.assets.map(video => ({
+                const selectedVideos = result.assets.map((video) => ({
                     id: video.uri,
                     uri: video.uri,
                     thumbnailImages: defaultThumbnail,
                 }));
-                setVideos(prevVideos => [...new Set([...prevVideos, ...selectedVideos])]);
+
+                setVideos((prevVideos) => [
+                    ...new Set([...prevVideos, ...selectedVideos]),
+                ]);
             }
         }
     };
+
 
     const handleDateChange = (event, date) => {
         setShow(false);

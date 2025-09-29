@@ -334,12 +334,12 @@ const Dashboard = () => {
                 </Text>
               </View>
             </View> */}
+            <MenuItem
+              icon="settings-suggest"
+              title={t('User Settings')}
+              onPress={() => handleNavigate('profilesettings')}
+            />
           </View>
-          <MenuItem
-            icon="settings-suggest"
-            title={t('User Settings')}
-            onPress={() => handleNavigate('profilesettings')}
-          />
           {/* <View className="mb-3">
             <MenuItem
               icon="logout"

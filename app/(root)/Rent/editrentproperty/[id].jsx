@@ -379,6 +379,7 @@ const EditRentProperty = () => {
                 mediaTypes: ImagePicker.MediaTypeOptions.Videos,
                 allowsEditing: true,
                 quality: 0.5,
+                videoMaxDuration: 60, // ✅ Limit recording to 1 minute
             });
             if (!result?.canceled && result.assets?.length) {
                 setVideos(prevVideos => [
@@ -1671,7 +1672,8 @@ const EditRentProperty = () => {
 
             {loading && (
                 <View className='absolute bottom-28 z-40 right-16'>
-                    <ActivityIndicator />
+                    <ActivityIndicator size="large" color="#4A90E2" />
+                    <Text>Loading...</Text>
                 </View>
             )}
 

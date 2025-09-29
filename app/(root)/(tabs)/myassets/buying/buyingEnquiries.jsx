@@ -191,7 +191,7 @@ const BuyingEnquiries = () => {
                     </View>
                 </View>
                 <View style={styles.cardrow}>
-                    {/* {(selectedEnquiry?.propertyfor === null || selectedEnquiry?.propertyfor === 'Sale') && latestBid?.bidamount != null && latestBid?.bidamount !== '' && (
+                    {/* {(selectedEnquiry?.propertyfor === null || selectedEnquiry?.propertyfor === 'Sell') && latestBid?.bidamount != null && latestBid?.bidamount !== '' && (
                     <View>
                         <Text style={styles.cardLabel}>{t('Bid Amount')}:</Text>
                         <Text style={[styles.cardText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
