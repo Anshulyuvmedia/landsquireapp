@@ -69,7 +69,7 @@ const LightboxModal = ({
                 </TouchableOpacity>
 
                 {/* Zoom in/out buttons */}
-                <View className="absolute bottom-10 flex-row gap-4 z-50">
+                <View className="absolute bottom-20 flex-row gap-4 z-50">
                     <TouchableOpacity
                         onPress={() => {
                             const newScale = Math.max(savedScale.value - 0.5, 1);

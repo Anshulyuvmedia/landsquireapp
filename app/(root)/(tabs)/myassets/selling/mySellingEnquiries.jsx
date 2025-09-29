@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import icons from '@/constants/icons';
 
 const MySellingEnquiries = () => {
     const { t, i18n } = useTranslation();
@@ -236,6 +237,7 @@ const MySellingEnquiries = () => {
                 </View>
             ) : enquiries.length === 0 ? (
                 <View style={styles.emptyContainer}>
+                    <Image source={icons.alertDanger} style={styles.noDataIcon} />
                     <Text style={[styles.emptyText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                         {t('noEnquiries')}
                     </Text>
@@ -424,7 +426,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: verticalScale(50),
+        // marginTop: verticalScale(50),
     },
     emptyText: {
         fontSize: moderateScale(16),
@@ -599,5 +601,9 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: moderateScale(14),
         fontFamily: 'Rubik-Medium',
+    },
+    noDataIcon: {
+        width: scale(120),
+        height: scale(120),
     },
 });

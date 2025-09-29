@@ -8,7 +8,7 @@ import axios from 'axios';
 import icons from '@/constants/icons';
 import { useUser } from '@/context/UserContext';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Utility function to format phone numbers for WhatsApp
@@ -38,10 +38,8 @@ const Loanleads = () => {
 
     const handleBack = () => {
         if (navigation.canGoBack()) {
-            // console.log('EditProfile: Navigating back');
             navigation.goBack();
         } else {
-            // console.log('EditProfile: Cannot go back, navigating to dashboard');
             router.navigate('/(root)/(tabs)/settings');
         }
     };
@@ -85,8 +83,6 @@ const Loanleads = () => {
     useEffect(() => {
         fetchUserEnquiries();
     }, []);
-
-
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -153,6 +149,27 @@ const Loanleads = () => {
         }
     };
 
+    const handleDownloadDocument = async (documentUrl) => {
+        if (!documentUrl) {
+            Alert.alert(t('error'), t('documentNotAvailable'));
+            return;
+        }
+        const fullUrl = `https://landsquire.in/${documentUrl}`;
+        console.log('Attempting to download document:', fullUrl);
+        try {
+            const supported = await Linking.canOpenURL(fullUrl);
+            if (supported) {
+                await Linking.openURL(fullUrl);
+            } else {
+                Alert.alert(t('error'), t('cannotOpenDocument'));
+                console.error('Cannot open document URL:', fullUrl);
+            }
+        } catch (err) {
+            Alert.alert(t('error'), t('failedToOpenDocument'));
+            console.error('Error opening document:', err);
+        }
+    };
+
     const renderEnquiry = ({ item }) => {
         return (
             <TouchableOpacity style={styles.card} onPress={() => openDetails(item)}>
@@ -185,16 +202,17 @@ const Loanleads = () => {
                     </View>
                 </View>
                 <View style={styles.buttonContainer}>
-                    {/* {item.propertyid && (
+                    {item.propertyid && (
                         <TouchableOpacity
                             style={styles.actionButton}
                             onPress={() => router.push(`/properties/${item.propertyid}`)}
                         >
+                            <MaterialCommunityIcons name="home-city-outline" size={moderateScale(16, 0.3)} color="white" style={styles.buttonIcon} />
                             <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
-                                {t('viewProperty')}
+                                {t('view')}
                             </Text>
                         </TouchableOpacity>
-                    )} */}
+                    )}
                     {item.agentid && (
                         <TouchableOpacity
                             style={[styles.actionButton, styles.agentButton]}
@@ -233,9 +251,14 @@ const Loanleads = () => {
 
     const renderLoanDetails = () => {
         if (!selectedEnquiry?.loan_amount) return null;
+        let documents = [];
+        try {
+            documents = JSON.parse(selectedEnquiry.documents) || [];
+        } catch (error) {
+            console.error('Error parsing documents:', error);
+        }
         return (
             <View>
-
                 <View style={styles.bidHistoryRow}>
                     <Text style={[styles.sheetLabel, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
                         {t('Loan Amount')}:
@@ -252,6 +275,31 @@ const Loanleads = () => {
                         {new Date(selectedEnquiry.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </Text>
                 </View>
+                <View style={styles.bidHistoryRow}>
+                    <Text style={[styles.sheetLabel, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
+                        {t('Documents')}:
+                    </Text>
+                    <View style={{ flex: 1 }}>
+                        {documents.length > 0 ? (
+                            documents.map((doc, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[styles.actionButton, styles.documentButton]}
+                                    onPress={() => handleDownloadDocument(doc)}
+                                >
+                                    <Feather name="file-text" size={moderateScale(16, 0.3)} color="#fff" style={styles.buttonIcon} />
+                                    <Text style={[styles.actionButtonText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
+                                        {t('Download ')}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))
+                        ) : (
+                            <Text style={[styles.sheetValue, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
+                                {t('noDocuments')}
+                            </Text>
+                        )}
+                    </View>
+                </View>
             </View>
         );
     };
@@ -259,16 +307,12 @@ const Loanleads = () => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                {/* <View className='me-12'></View> */}
                 <Text style={[styles.title, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>
                     {t('Loan Enquiries')}
                 </Text>
                 <TouchableOpacity onPress={handleBack} style={styles.backButton}>
                     <Image source={icons.backArrow} style={styles.backIcon} />
                 </TouchableOpacity>
-                {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
-                    <Image source={icons.bell} style={styles.bellIcon} />
-                </TouchableOpacity> */}
             </View>
 
             <View className='mx-auto'>
@@ -281,9 +325,26 @@ const Loanleads = () => {
                 </View>
             ) : enquiries.length === 0 ? (
                 <View style={styles.emptyContainer}>
+                    <Image source={icons.alertDanger} style={styles.noDataIcon} />
                     <Text style={[styles.emptyText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                         {t('noEnquiries')}
                     </Text>
+                    <TouchableOpacity
+                        style={{
+                            marginTop: 10,
+                            alignSelf: 'center',
+                            backgroundColor: '#234F68',
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                            borderRadius: 8,
+                        }}
+                        onPress={onRefresh}
+                        disabled={loading}
+                    >
+                        <Text style={{ color: '#fff', fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }}>
+                            Refresh
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             ) : (
                 <FlatList
@@ -310,8 +371,6 @@ const Loanleads = () => {
                     container: styles.rbSheet,
                 }}
             >
-
-
                 {selectedEnquiry && (
                     <View style={styles.sheetContainer}>
                         <View style={styles.sheetHeader}>
@@ -415,7 +474,6 @@ const Loanleads = () => {
 
 export default Loanleads;
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -544,6 +602,10 @@ const styles = StyleSheet.create({
     agentButton: {
         backgroundColor: '#4CAF50',
     },
+    documentButton: {
+        backgroundColor: '#007BFF',
+        marginVertical: verticalScale(5),
+    },
     buttonIcon: {
         marginRight: scale(3),
     },
@@ -634,5 +696,9 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: moderateScale(14),
         fontFamily: 'Rubik-Medium',
+    },
+    noDataIcon: {
+        width: scale(120),
+        height: scale(120),
     },
 });

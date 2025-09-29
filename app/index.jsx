@@ -19,24 +19,25 @@ export default function Index() {
                 if (token && userData) {
                     const user = JSON.parse(userData);
                     const userType = user?.user_type?.toLowerCase();
+                    console.log('userType', userType);
 
                     if (userType === "user") {
-                        // console.log('1');
-                        router.replace("/mapview");
+                        router.push("/mapview");
+                        console.log('1');
                     } else if (userType === "broker" || userType === "bankagent") {
-                        // console.log('2');
-                        router.replace("/(root)/(tabs)/home");
+                        console.log('2');
+                        router.push("/(root)/(tabs)/home");
                     } else {
-                        // console.log('3');
-                        router.replace("/(auth)/signin");
+                        console.log('3');
+                        router.push("/(auth)/signin");
                     }
                 } else {
-                    // console.log('4');
-                    router.replace("/(auth)/signin");
+                    console.log('4');
+                    router.push("/(auth)/signin");
                 }
             } catch (err) {
                 console.error("Auth check failed:", err);
-                router.replace("/(auth)/signin");
+                router.push("/(auth)/signin");
             } finally {
                 setLoading(false);
             }

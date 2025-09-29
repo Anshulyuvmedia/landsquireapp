@@ -42,7 +42,7 @@ const MySellingProperties = () => {
 
   const handleCardPress = (id) => router.push(`/properties/${id}`);
   const handleEditPress = (id) => router.push(`/dashboard/editproperties/${id}`);
-  const handleAddProperty = () => router.push('/addproperty');
+  const handleAddProperty = () => router.push('/addlisting');
 
   const handleEditBidPress = (property) => {
     setSelectedProperty(property);

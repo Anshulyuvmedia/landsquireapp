@@ -862,451 +862,426 @@ const Addproperty = () => {
                     <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
             </View>
+            {loading ? (
+                <View className=' z-40 flex-1 justify-content-center align-items-center'>
+                    <ActivityIndicator size="large" color="#4A90E2" />
+                    <Text>Loading...</Text>
 
-            <View style={styles.container}>
-                <ProgressSteps>
-                    <ProgressStep label="General"
-                        nextBtnTextStyle={buttonNextTextStyle}
-                        nextBtnText="Next"
-                        previousBtnText="Back"
-                        onNext={() => onNextStep(1)}
-                        errors={errors}
-                    >
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step1Errors.property_name && { color: 'red' }]}>Property Title</Text>
-                            <View style={styles.inputContainer}>
-                                <AntDesign name="home" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholderTextColor="#555"
-                                    placeholder="Enter property name"
-                                    value={step1Data.property_name}
-                                    onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
-                                />
-                            </View>
-                        </View>
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step1Errors.description && { color: 'red' }]}>Property Description</Text>
-                            <TextInput
-                                style={styles.textarea}
-                                placeholderTextColor="#555"
-                                value={step1Data.description}
-                                onChangeText={text => setStep1Data({ ...step1Data, description: text })}
-                                maxLength={120}
-                                placeholder="Enter property description..."
-                                multiline
-                                numberOfLines={5}
-                            />
-                        </View>
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step1Errors.mainImage && { color: 'red' }]}>Property Thumbnail</Text>
-                            <View className="flex-row items-center">
-                                <TouchableOpacity onPress={() => openSourceModal('mainImage')} style={styles.dropbox}>
-                                    <Ionicons name="image-outline" size={24} color="#234F68" style={styles.inputIcon} />
-                                    <Text style={{ marginStart: 10 }}>Upload Thumbnail</Text>
-                                </TouchableOpacity>
-                                {mainImage && <Image source={{ uri: mainImage }} style={styles.image} />}
-                            </View>
-                        </View>
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step1Errors.category && { color: 'red' }]}>Select Category</Text>
-                            <View style={styles.categoryContainer}>
-                                {Array.isArray(categoryData) &&
-                                    categoryData.map((category) => (
-                                        <TouchableOpacity
-                                            key={category.id}
-                                            style={[
-                                                styles.categoryButton,
-                                                selectedCategory === category.label && styles.categoryButtonSelected,
-                                            ]}
-                                            onPress={() => {
-                                                setSelectedCategory(category.label);
-                                                setSelectedSubCategory(null);
-                                            }}
-                                        >
-                                            <Text
-                                                style={[
-                                                    styles.categoryText,
-                                                    selectedCategory === category.label && styles.categoryTextSelected,
-                                                ]}
-                                            >
-                                                {category.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                            </View>
-                            {selectedCategory && (
-                                <>
-                                    <Text style={[styles.label, step1Errors.subcategory && { color: 'red' }]}>Select Sub Category</Text>
-                                    <View style={styles.categoryContainer}>
-                                        {Array.isArray(subcategoryOptions[selectedCategory]) &&
-                                            subcategoryOptions[selectedCategory].map((subcategory) => (
-                                                <TouchableOpacity
-                                                    key={subcategory.value}
-                                                    style={[
-                                                        styles.categoryButton,
-                                                        selectedSubCategory === subcategory.value &&
-                                                        styles.categoryButtonSelected,
-                                                    ]}
-                                                    onPress={() => setSelectedSubCategory(subcategory.value)}
-                                                >
-                                                    <Text
-                                                        style={[
-                                                            styles.categoryText,
-                                                            selectedSubCategory === subcategory.value &&
-                                                            styles.categoryTextSelected,
-                                                        ]}
-                                                    >
-                                                        {subcategory.label}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            ))}
-                                    </View>
-                                </>
-                            )}
-                        </View>
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step1Errors.nearbylocation && { color: 'red' }]}>Near By Locations</Text>
-                            <View style={styles.inputContainer}>
-                                <Ionicons name="trail-sign-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholderTextColor="#555"
-                                    placeholder="Enter near by locations..."
-                                    value={step1Data.nearbylocation}
-                                    onChangeText={text => setStep1Data({ ...step1Data, nearbylocation: text })}
-                                />
-                            </View>
-                        </View>
-                    </ProgressStep>
-
-                    <ProgressStep label="Price"
-                        nextBtnText="Next"
-                        previousBtnText="Back"
-                        nextBtnTextStyle={buttonNextTextStyle}
-                        previousBtnTextStyle={buttonPreviousTextStyle}
-                        onNext={() => onNextStep(2)}
-                        errors={errors}
-                    >
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step2Errors.approxrentalincome && { color: 'red' }]}>Approx Rental Income</Text>
-                            <View style={styles.inputContainer}>
-                                <Ionicons name="pricetag-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholderTextColor="#555"
-                                    keyboardType="numeric"
-                                    placeholder="Enter approx rental income"
-                                    value={formatIndianNumber(step2Data.approxrentalincome)}
-                                    onChangeText={text => {
-                                        const numericText = text.replace(/[^0-9]/g, '');
-                                        setStep2Data(prevState => ({ ...prevState, approxrentalincome: numericText }));
-                                    }}
-                                />
-                            </View>
-                        </View>
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step2Errors.price && { color: 'red' }]}>Current Property Price</Text>
-                            <View style={styles.inputContainer}>
-                                <FontAwesome name="rupee" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholderTextColor="#555"
-                                    keyboardType="numeric"
-                                    placeholder="Enter current price"
-                                    value={formatIndianNumber(step2Data.price)}
-                                    onChangeText={text => {
-                                        const numericText = text.replace(/[^0-9]/g, '');
-                                        setStep2Data(prevState => ({ ...prevState, price: numericText }));
-                                    }}
-                                />
-                            </View>
-                        </View>
-                    </ProgressStep>
-
-                    <ProgressStep label="Details"
-                        nextBtnText="Next"
-                        previousBtnText="Back"
-                        nextBtnTextStyle={buttonNextTextStyle}
-                        previousBtnTextStyle={buttonPreviousTextStyle}
-                        onNext={() => onNextStep(3)}
-                        errors={errors}
-                    >
-                        <View style={styles.stepContent}>
-                            <View className='flex flex-row items-center'>
-                                <Text style={[styles.label, step3Errors.amenities && { color: 'red' }]}>Features & Amenities</Text>
-                            </View>
-                            <View className='flex flex-row align-center'>
-                                <View className='flex-grow'>
-                                    <View style={styles.inputContainer}>
-                                        <MaterialIcons name="pool" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholderTextColor="#555"
-                                            placeholder="Enter to Add Amenities"
-                                            value={amenity}
-                                            onChangeText={setAmenity}
-                                            onSubmitEditing={handleAddAmenity}
-                                        />
-                                    </View>
-                                </View>
-                                <TouchableOpacity onPress={() => handleAddAmenity()}>
-                                    <Image source={icons.addicon} style={styles.addBtn} />
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                <FlatList
-                                    data={amenities}
-                                    keyExtractor={(item, index) => index.toString()}
-                                    horizontal
-                                    nestedScrollEnabled
-                                    showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={{ flexDirection: "row", alignItems: "center" }}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.amenityItem}>
-                                            <Text className="font-rubik-bold px-2 capitalize text-nowrap text-green-600">{item}</Text>
-                                            <TouchableOpacity onPress={() => setAmenities(amenities.filter(a => a !== item))}>
-                                                <Text style={styles.removeBtn}>❌</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                        </View>
-
-                        {(selectedSubCategory !== 'Plot' && selectedSubCategory !== 'Land') && (
+                </View>
+            ) : (
+                <View style={styles.container}>
+                    <ProgressSteps>
+                        <ProgressStep label="General"
+                            nextBtnTextStyle={buttonNextTextStyle}
+                            nextBtnText="Next"
+                            previousBtnText="Back"
+                            onNext={() => onNextStep(1)}
+                            errors={errors}
+                        >
                             <View style={styles.stepContent}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                    <View style={{ flex: 1, marginRight: 5 }}>
-                                        <Text style={[styles.label, step3Errors.floor && { color: 'red' }]}>Floor</Text>
-                                        <View style={styles.inputContainer}>
-                                            <MaterialCommunityIcons name="floor-plan" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
-                                        </View>
-                                    </View>
-                                    <View style={{ flex: 1, marginRight: 5 }}>
-                                        <Text style={[styles.label, step3Errors.bathroom && { color: 'red' }]}>Bathroom</Text>
-                                        <View style={styles.inputContainer}>
-                                            <MaterialCommunityIcons name="bathtub-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
-                                        </View>
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, step3Errors.bedroom && { color: 'red' }]}>Bedroom</Text>
-                                        <View style={styles.inputContainer}>
-                                            <MaterialCommunityIcons name="bed-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
-                                        </View>
-                                    </View>
-                                </View>
-                            </View>
-                        )}
-
-                        <View style={styles.stepContent}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.label, step3Errors.landArea && { color: 'red' }]}>Land Area</Text>
-                                    <View style={styles.inputContainer}>
-                                        <MaterialIcons name="zoom-out-map" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                        <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
-                                        <View style={styles.unitpickerContainer}>
-                                            <RNPickerSelect
-                                                onValueChange={(value) => setSelectedUnit(value)}
-                                                items={units}
-                                                value={selectedUnit}
-                                                style={pickerSelectStyles}
-                                                placeholder={{ label: 'Choose an unit...', value: null }}
-                                            />
-                                        </View>
-                                    </View>
-                                </View>
-                            </View>
-                        </View>
-
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step3Errors.city && { color: 'red' }]}>City</Text>
-                            <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+                                <Text style={[styles.label, step1Errors.property_name && { color: 'red' }]}>Property Title</Text>
                                 <View style={styles.inputContainer}>
-                                    <MaterialCommunityIcons name="city-variant-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                    <AntDesign name="home" size={24} color="#1F4C6B" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
                                         placeholderTextColor="#555"
-                                        placeholder="Enter City"
-                                        value={step3Data.city}
-                                        onChangeText={(text) => {
-                                            setStep3Data({ ...step3Data, city: text });
-                                            setSearchTermCity(text);
-                                            fetchCitySuggestions(text);
-                                        }}
+                                        placeholder="Enter property name"
+                                        value={step1Data.property_name}
+                                        onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
                                     />
                                 </View>
-                            </KeyboardAvoidingView>
-                            {citySuggestions.length > 0 && (
-                                <FlatList
-                                    data={citySuggestions}
-                                    keyExtractor={(item) => item.place_id}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={styles.suggestionItem}
-                                            onPress={() => handleCitySelect(item.place_id)}
-                                        >
-                                            <Text style={styles.suggestionText}>{item.description}</Text>
-                                        </TouchableOpacity>
-                                    )}
-                                    style={styles.suggestionsList}
-                                />
-                            )}
-                        </View>
-
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step3Errors.officeaddress && { color: 'red' }]}>Property Address</Text>
-                            <TextInput
-                                style={styles.textarea}
-                                placeholderTextColor="#555"
-                                placeholder="Enter complete address"
-                                value={step3Data.officeaddress}
-                                onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })}
-                                multiline
-                                numberOfLines={5}
-                                maxLength={120}
-                            />
-                        </View>
-
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step3Errors.fullAddress && { color: 'red' }]}>Find Location on Google Map</Text>
-                            <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-                                <View style={styles.inputContainer}>
-                                    <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.mapTextInput}
-                                        placeholder="Locate your property"
-                                        placeholderTextColor="#999"
-                                        value={searchTermLocation}
-                                        onChangeText={(text) => {
-                                            setSearchTermLocation(text);
-                                            fetchLocationSuggestions(text);
-                                        }}
-                                    />
-                                </View>
-                            </KeyboardAvoidingView>
-                            {locationSuggestions.length > 0 && (
-                                <FlatList
-                                    data={locationSuggestions}
-                                    keyExtractor={(item) => item.place_id}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={styles.suggestionItem}
-                                            onPress={() => handleLocationSelect(item.place_id)}
-                                        >
-                                            <Text style={styles.suggestionText}>{item.description}</Text>
-                                        </TouchableOpacity>
-                                    )}
-                                    style={styles.suggestionsList}
-                                />
-                            )}
-                            {message.text && (
-                                <View style={styles.errorContainer}>
-                                    <Text style={styles.errorText}>{message.title}: {message.text}</Text>
-                                </View>
-                            )}
-                            <View>
-                                <Text className='text-base'>Location: {fullAddress || "Not available"}</Text>
                             </View>
-                            <Text style={{ marginTop: 10, fontWeight: "bold" }}>Pin Location on Map</Text>
-                            <Text style={{ fontSize: 12, color: '#888', marginBottom: 5 }}>
-                                Tap on the map or drag the marker to set the property location.
-                            </Text>
-                            <View>
-                                <MapView
-                                    style={{ height: 350, borderRadius: 10 }}
-                                    region={{
-                                        latitude: region.latitude || 20.5937,
-                                        longitude: region.longitude || 78.9629,
-                                        latitudeDelta: region.latitudeDelta || 0.015,
-                                        longitudeDelta: region.longitudeDelta || 0.0121,
-                                    }}
-                                    mapType={'hybrid'}
-                                    moveOnMarkerPress={false}
-                                    onPress={handleMapPress}
-                                >
-                                    {(coordinates.latitude && coordinates.longitude) && (
-                                        <Marker
-                                            coordinate={{
-                                                latitude: parseFloat(coordinates.latitude),
-                                                longitude: parseFloat(coordinates.longitude),
-                                            }}
-                                            draggable
-                                            onDragEnd={async (e) => {
-                                                const { latitude, longitude } = e.nativeEvent.coordinate;
-                                                setCoordinates({ latitude, longitude });
-                                                setRegion((prevRegion) => ({
-                                                    ...prevRegion,
-                                                    latitude,
-                                                    longitude,
-                                                }));
-                                                await updateFullAddress(latitude, longitude);
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step1Errors.description && { color: 'red' }]}>Property Description</Text>
+                                <TextInput
+                                    style={styles.textarea}
+                                    placeholderTextColor="#555"
+                                    value={step1Data.description}
+                                    onChangeText={text => setStep1Data({ ...step1Data, description: text })}
+                                    maxLength={120}
+                                    placeholder="Enter property description..."
+                                    multiline
+                                    numberOfLines={5}
+                                />
+                            </View>
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step1Errors.mainImage && { color: 'red' }]}>Property Thumbnail</Text>
+                                <View className="flex-row items-center">
+                                    <TouchableOpacity onPress={() => openSourceModal('mainImage')} style={styles.dropbox}>
+                                        <Ionicons name="image-outline" size={24} color="#234F68" style={styles.inputIcon} />
+                                        <Text style={{ marginStart: 10 }}>Upload Thumbnail</Text>
+                                    </TouchableOpacity>
+                                    {mainImage && <Image source={{ uri: mainImage }} style={styles.image} />}
+                                </View>
+                            </View>
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step1Errors.category && { color: 'red' }]}>Select Category</Text>
+                                <View style={styles.categoryContainer}>
+                                    {Array.isArray(categoryData) &&
+                                        categoryData.map((category) => (
+                                            <TouchableOpacity
+                                                key={category.id}
+                                                style={[
+                                                    styles.categoryButton,
+                                                    selectedCategory === category.label && styles.categoryButtonSelected,
+                                                ]}
+                                                onPress={() => {
+                                                    setSelectedCategory(category.label);
+                                                    setSelectedSubCategory(null);
+                                                }}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.categoryText,
+                                                        selectedCategory === category.label && styles.categoryTextSelected,
+                                                    ]}
+                                                >
+                                                    {category.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                </View>
+                                {selectedCategory && (
+                                    <>
+                                        <Text style={[styles.label, step1Errors.subcategory && { color: 'red' }]}>Select Sub Category</Text>
+                                        <View style={styles.categoryContainer}>
+                                            {Array.isArray(subcategoryOptions[selectedCategory]) &&
+                                                subcategoryOptions[selectedCategory].map((subcategory) => (
+                                                    <TouchableOpacity
+                                                        key={subcategory.value}
+                                                        style={[
+                                                            styles.categoryButton,
+                                                            selectedSubCategory === subcategory.value &&
+                                                            styles.categoryButtonSelected,
+                                                        ]}
+                                                        onPress={() => setSelectedSubCategory(subcategory.value)}
+                                                    >
+                                                        <Text
+                                                            style={[
+                                                                styles.categoryText,
+                                                                selectedSubCategory === subcategory.value &&
+                                                                styles.categoryTextSelected,
+                                                            ]}
+                                                        >
+                                                            {subcategory.label}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                        </View>
+                                    </>
+                                )}
+                            </View>
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step1Errors.nearbylocation && { color: 'red' }]}>Near By Locations</Text>
+                                <View style={styles.inputContainer}>
+                                    <Ionicons name="trail-sign-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor="#555"
+                                        placeholder="Enter near by locations..."
+                                        value={step1Data.nearbylocation}
+                                        onChangeText={text => setStep1Data({ ...step1Data, nearbylocation: text })}
+                                    />
+                                </View>
+                            </View>
+                        </ProgressStep>
+
+                        <ProgressStep label="Price"
+                            nextBtnText="Next"
+                            previousBtnText="Back"
+                            nextBtnTextStyle={buttonNextTextStyle}
+                            previousBtnTextStyle={buttonPreviousTextStyle}
+                            onNext={() => onNextStep(2)}
+                            errors={errors}
+                        >
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step2Errors.approxrentalincome && { color: 'red' }]}>Approx Rental Income</Text>
+                                <View style={styles.inputContainer}>
+                                    <Ionicons name="pricetag-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor="#555"
+                                        keyboardType="numeric"
+                                        placeholder="Enter approx rental income"
+                                        value={formatIndianNumber(step2Data.approxrentalincome)}
+                                        onChangeText={text => {
+                                            const numericText = text.replace(/[^0-9]/g, '');
+                                            setStep2Data(prevState => ({ ...prevState, approxrentalincome: numericText }));
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step2Errors.price && { color: 'red' }]}>Current Property Price</Text>
+                                <View style={styles.inputContainer}>
+                                    <FontAwesome name="rupee" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor="#555"
+                                        keyboardType="numeric"
+                                        placeholder="Enter current price"
+                                        value={formatIndianNumber(step2Data.price)}
+                                        onChangeText={text => {
+                                            const numericText = text.replace(/[^0-9]/g, '');
+                                            setStep2Data(prevState => ({ ...prevState, price: numericText }));
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                        </ProgressStep>
+
+                        <ProgressStep label="Details"
+                            nextBtnText="Next"
+                            previousBtnText="Back"
+                            nextBtnTextStyle={buttonNextTextStyle}
+                            previousBtnTextStyle={buttonPreviousTextStyle}
+                            onNext={() => onNextStep(3)}
+                            errors={errors}
+                        >
+                            <View style={styles.stepContent}>
+                                <View className='flex flex-col items-start'>
+                                    <Text style={[styles.label, step3Errors.amenities && { color: 'red' }]}>Features & Amenities</Text>
+                                    <Text style={styles.subtext}>Add each amenities with + button</Text>
+                                </View>
+                                <View className='flex flex-row align-center'>
+                                    <View className='flex-grow'>
+                                        <View style={styles.inputContainer}>
+                                            <MaterialIcons name="pool" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholderTextColor="#555"
+                                                placeholder="Enter to Add Amenities"
+                                                value={amenity}
+                                                onChangeText={setAmenity}
+                                                onSubmitEditing={handleAddAmenity}
+                                            />
+                                        </View>
+                                    </View>
+                                    <TouchableOpacity onPress={() => handleAddAmenity()}>
+                                        <Image source={icons.addicon} style={styles.addBtn} />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                    <FlatList
+                                        data={amenities}
+                                        keyExtractor={(item, index) => index.toString()}
+                                        horizontal
+                                        nestedScrollEnabled
+                                        showsHorizontalScrollIndicator={false}
+                                        contentContainerStyle={{ flexDirection: "row", alignItems: "center" }}
+                                        renderItem={({ item }) => (
+                                            <View style={styles.amenityItem}>
+                                                <Text className="font-rubik-bold px-2 capitalize text-nowrap text-green-600">{item}</Text>
+                                                <TouchableOpacity onPress={() => setAmenities(amenities.filter(a => a !== item))}>
+                                                    <Text style={styles.removeBtn}>❌</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        )}
+                                    />
+                                </View>
+                            </View>
+
+                            {(selectedSubCategory !== 'Plot' && selectedSubCategory !== 'Land') && (
+                                <View style={styles.stepContent}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <View style={{ flex: 1, marginRight: 5 }}>
+                                            <Text style={[styles.label, step3Errors.floor && { color: 'red' }]}>Floor</Text>
+                                            <View style={styles.inputContainer}>
+                                                <MaterialCommunityIcons name="floor-plan" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                                <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
+                                            </View>
+                                        </View>
+                                        <View style={{ flex: 1, marginRight: 5 }}>
+                                            <Text style={[styles.label, step3Errors.bathroom && { color: 'red' }]}>Bathroom</Text>
+                                            <View style={styles.inputContainer}>
+                                                <MaterialCommunityIcons name="bathtub-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                                <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
+                                            </View>
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[styles.label, step3Errors.bedroom && { color: 'red' }]}>Bedroom</Text>
+                                            <View style={styles.inputContainer}>
+                                                <MaterialCommunityIcons name="bed-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                                <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            )}
+
+                            <View style={styles.stepContent}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.label, step3Errors.landArea && { color: 'red' }]}>Land Area</Text>
+                                        <View style={styles.inputContainer}>
+                                            <MaterialIcons name="zoom-out-map" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                            <TextInput style={styles.input} placeholderTextColor="#555" placeholder="Land area" keyboardType="numeric" value={landArea} onChangeText={(value) => setLandArea(value)} />
+                                            <View style={styles.unitpickerContainer}>
+                                                <RNPickerSelect
+                                                    onValueChange={(value) => setSelectedUnit(value)}
+                                                    items={units}
+                                                    value={selectedUnit}
+                                                    style={pickerSelectStyles}
+                                                    placeholder={{ label: 'Choose an unit...', value: null }}
+                                                />
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step3Errors.city && { color: 'red' }]}>City</Text>
+                                <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+                                    <View style={styles.inputContainer}>
+                                        <MaterialCommunityIcons name="city-variant-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholderTextColor="#555"
+                                            placeholder="Enter City"
+                                            value={step3Data.city}
+                                            onChangeText={(text) => {
+                                                setStep3Data({ ...step3Data, city: text });
+                                                setSearchTermCity(text);
+                                                fetchCitySuggestions(text);
                                             }}
                                         />
-                                    )}
-                                </MapView>
-                            </View>
-                        </View>
-                    </ProgressStep>
-
-                    <ProgressStep label="Files"
-                        finishBtnText="Save"
-                        previousBtnText="Back"
-                        nextBtnTextStyle={buttonNextTextStyle}
-                        previousBtnTextStyle={buttonPreviousTextStyle}
-                        onSubmit={handleFormSubmission}
-                    >
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step4Errors.galleryImages && { color: 'red' }]}>Property Gallery</Text>
-                            <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                <FlatList
-                                    data={galleryImages}
-                                    horizontal
-                                    keyExtractor={(item, index) => index.toString()}
-                                    nestedScrollEnabled={true}
-                                    contentContainerStyle={styles.fileContainer}
-                                    renderItem={({ item, index }) => (
-                                        <View style={styles.thumbnailBox} className="border border-gray-300">
-                                            <Image source={{ uri: item }} style={styles.thumbnail} />
-                                            <Text className="text-center font-rubik-bold">Image: {index + 1}</Text>
+                                    </View>
+                                </KeyboardAvoidingView>
+                                {citySuggestions.length > 0 && (
+                                    <FlatList
+                                        data={citySuggestions}
+                                        keyExtractor={(item) => item.place_id}
+                                        renderItem={({ item }) => (
                                             <TouchableOpacity
-                                                onPress={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
-                                                style={styles.deleteButton}
+                                                style={styles.suggestionItem}
+                                                onPress={() => handleCitySelect(item.place_id)}
                                             >
-                                                <Text className="text-white">X</Text>
+                                                <Text style={styles.suggestionText}>{item.description}</Text>
                                             </TouchableOpacity>
-                                        </View>
-                                    )}
+                                        )}
+                                        style={styles.suggestionsList}
+                                    />
+                                )}
+                            </View>
+
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step3Errors.officeaddress && { color: 'red' }]}>Property Address</Text>
+                                <TextInput
+                                    style={styles.textarea}
+                                    placeholderTextColor="#555"
+                                    placeholder="Enter complete address"
+                                    value={step3Data.officeaddress}
+                                    onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })}
+                                    multiline
+                                    numberOfLines={5}
+                                    maxLength={120}
                                 />
                             </View>
-                            <TouchableOpacity onPress={() => openSourceModal('galleryImages')} style={styles.dropbox}>
-                                <Ionicons name="images-outline" size={24} color="#234F68" style={styles.inputIcon} />
-                                <Text style={{ textAlign: 'center' }}>Pick property images</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.stepContent}>
-                            <View style={[styles.label, step4Errors.videos && { color: 'red' }]}>
-                                <Text style={styles.label}>Upload Videos</Text>
+
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step3Errors.fullAddress && { color: 'red' }]}>Find Location on Google Map</Text>
+                                <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+                                    <View style={styles.inputContainer}>
+                                        <MaterialCommunityIcons name="map-marker-radius-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                                        <TextInput
+                                            style={styles.mapTextInput}
+                                            placeholder="Locate your property"
+                                            placeholderTextColor="#999"
+                                            value={searchTermLocation}
+                                            onChangeText={(text) => {
+                                                setSearchTermLocation(text);
+                                                fetchLocationSuggestions(text);
+                                            }}
+                                        />
+                                    </View>
+                                </KeyboardAvoidingView>
+                                {locationSuggestions.length > 0 && (
+                                    <FlatList
+                                        data={locationSuggestions}
+                                        keyExtractor={(item) => item.place_id}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                style={styles.suggestionItem}
+                                                onPress={() => handleLocationSelect(item.place_id)}
+                                            >
+                                                <Text style={styles.suggestionText}>{item.description}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                        style={styles.suggestionsList}
+                                    />
+                                )}
+                                {message.text && (
+                                    <View style={styles.errorContainer}>
+                                        <Text style={styles.errorText}>{message.title}: {message.text}</Text>
+                                    </View>
+                                )}
+                                <View>
+                                    <Text className='text-base'>Location: {fullAddress || "Not available"}</Text>
+                                </View>
+                                <Text style={{ marginTop: 10, fontWeight: "bold" }}>Pin Location on Map</Text>
+                                <Text style={{ fontSize: 12, color: '#888', marginBottom: 5 }}>
+                                    Tap on the map or drag the marker to set the property location.
+                                </Text>
+                                <View>
+                                    <MapView
+                                        style={{ height: 350, borderRadius: 10 }}
+                                        region={{
+                                            latitude: region.latitude || 20.5937,
+                                            longitude: region.longitude || 78.9629,
+                                            latitudeDelta: region.latitudeDelta || 0.015,
+                                            longitudeDelta: region.longitudeDelta || 0.0121,
+                                        }}
+                                        mapType={'hybrid'}
+                                        moveOnMarkerPress={false}
+                                        onPress={handleMapPress}
+                                    >
+                                        {(coordinates.latitude && coordinates.longitude) && (
+                                            <Marker
+                                                coordinate={{
+                                                    latitude: parseFloat(coordinates.latitude),
+                                                    longitude: parseFloat(coordinates.longitude),
+                                                }}
+                                                draggable
+                                                onDragEnd={async (e) => {
+                                                    const { latitude, longitude } = e.nativeEvent.coordinate;
+                                                    setCoordinates({ latitude, longitude });
+                                                    setRegion((prevRegion) => ({
+                                                        ...prevRegion,
+                                                        latitude,
+                                                        longitude,
+                                                    }));
+                                                    await updateFullAddress(latitude, longitude);
+                                                }}
+                                            />
+                                        )}
+                                    </MapView>
+                                </View>
+                            </View>
+                        </ProgressStep>
+
+                        <ProgressStep label="Files"
+                            finishBtnText="Save"
+                            previousBtnText="Back"
+                            nextBtnTextStyle={buttonNextTextStyle}
+                            previousBtnTextStyle={buttonPreviousTextStyle}
+                            onSubmit={handleFormSubmission}
+                        >
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step4Errors.galleryImages && { color: 'red' }]}>Property Gallery</Text>
                                 <View style={{ flexGrow: 1, minHeight: 1 }}>
                                     <FlatList
-                                        data={videos}
+                                        data={galleryImages}
                                         horizontal
-                                        keyExtractor={(item) => item.id.toString()}
+                                        keyExtractor={(item, index) => index.toString()}
                                         nestedScrollEnabled={true}
                                         contentContainerStyle={styles.fileContainer}
                                         renderItem={({ item, index }) => (
                                             <View style={styles.thumbnailBox} className="border border-gray-300">
-                                                <Image
-                                                    source={{ uri: `${item.thumbnailImages}?update=${new Date().getTime()}` }}
-                                                    style={styles.thumbnail}
-                                                />
-                                                <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
+                                                <Image source={{ uri: item }} style={styles.thumbnail} />
+                                                <Text className="text-center font-rubik-bold">Image: {index + 1}</Text>
                                                 <TouchableOpacity
-                                                    onPress={() => setVideos(videos.filter((v) => v.id !== item.id))}
+                                                    onPress={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
                                                     style={styles.deleteButton}
                                                 >
                                                     <Text className="text-white">X</Text>
@@ -1315,18 +1290,76 @@ const Addproperty = () => {
                                         )}
                                     />
                                 </View>
-                                <TouchableOpacity onPress={() => openSourceModal('video')} style={styles.dropbox}>
-                                    <FontAwesome name="file-video-o" size={24} color="#234F68" style={styles.inputIcon} />
-                                    <Text style={{ textAlign: 'center' }}>Pick property videos</Text>
+                                <TouchableOpacity onPress={() => openSourceModal('galleryImages')} style={styles.dropbox}>
+                                    <Ionicons name="images-outline" size={24} color="#234F68" style={styles.inputIcon} />
+                                    <Text style={{ textAlign: 'center' }}>Pick property images</Text>
                                 </TouchableOpacity>
                             </View>
-                        </View>
-                        <View style={styles.stepContent}>
-                            <View style={[styles.label, step4Errors.propertyDocuments && { color: 'red' }]}>
-                                <Text style={styles.label}>Upload Property Documents</Text>
+                            <View style={styles.stepContent}>
+                                <View style={[styles.label, step4Errors.videos && { color: 'red' }]}>
+                                    <Text style={styles.label}>Upload Videos</Text>
+                                    <View style={{ flexGrow: 1, minHeight: 1 }}>
+                                        <FlatList
+                                            data={videos}
+                                            horizontal
+                                            keyExtractor={(item) => item.id.toString()}
+                                            nestedScrollEnabled={true}
+                                            contentContainerStyle={styles.fileContainer}
+                                            renderItem={({ item, index }) => (
+                                                <View style={styles.thumbnailBox} className="border border-gray-300">
+                                                    <Image
+                                                        source={{ uri: `${item.thumbnailImages}?update=${new Date().getTime()}` }}
+                                                        style={styles.thumbnail}
+                                                    />
+                                                    <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
+                                                    <TouchableOpacity
+                                                        onPress={() => setVideos(videos.filter((v) => v.id !== item.id))}
+                                                        style={styles.deleteButton}
+                                                    >
+                                                        <Text className="text-white">X</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
+                                        />
+                                    </View>
+                                    <TouchableOpacity onPress={() => openSourceModal('video')} style={styles.dropbox}>
+                                        <FontAwesome name="file-video-o" size={24} color="#234F68" style={styles.inputIcon} />
+                                        <Text style={{ textAlign: 'center' }}>Pick property videos</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            <View style={styles.stepContent}>
+                                <View style={[styles.label, step4Errors.propertyDocuments && { color: 'red' }]}>
+                                    <Text style={styles.label}>Upload Property Documents</Text>
+                                    <View style={{ flexGrow: 1, minHeight: 1 }}>
+                                        <FlatList
+                                            data={propertyDocuments}
+                                            horizontal
+                                            nestedScrollEnabled={true}
+                                            keyExtractor={(_, index) => index.toString()}
+                                            contentContainerStyle={styles.fileContainer}
+                                            renderItem={({ item, index }) => (
+                                                <View style={styles.thumbnailBox} className="border border-gray-300">
+                                                    <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+                                                    <Text className="text-center font-rubik-bold">Doc {index + 1}</Text>
+                                                    <TouchableOpacity onPress={() => removeDocument(index)} style={styles.deleteButton}>
+                                                        <Text className="text-white">X</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
+                                        />
+                                    </View>
+                                    <TouchableOpacity onPress={pickDocument} style={styles.dropbox}>
+                                        <FontAwesome name="file-pdf-o" size={24} color="#234F68" style={styles.inputIcon} />
+                                        <Text style={{ textAlign: 'center' }}>Pick property documents</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            <View style={styles.stepContent}>
+                                <Text style={[styles.label, step4Errors.masterPlanDoc && { color: 'red' }]}>Upload Property Master Plan</Text>
                                 <View style={{ flexGrow: 1, minHeight: 1 }}>
                                     <FlatList
-                                        data={propertyDocuments}
+                                        data={masterPlanDoc}
                                         horizontal
                                         nestedScrollEnabled={true}
                                         keyExtractor={(_, index) => index.toString()}
@@ -1334,52 +1367,21 @@ const Addproperty = () => {
                                         renderItem={({ item, index }) => (
                                             <View style={styles.thumbnailBox} className="border border-gray-300">
                                                 <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-                                                <Text className="text-center font-rubik-bold">Doc {index + 1}</Text>
-                                                <TouchableOpacity onPress={() => removeDocument(index)} style={styles.deleteButton}>
+                                                <Text className="text-center font-rubik-bold">Plan {index + 1}</Text>
+                                                <TouchableOpacity onPress={() => removeMasterPlan(index)} style={styles.deleteButton}>
                                                     <Text className="text-white">X</Text>
                                                 </TouchableOpacity>
                                             </View>
                                         )}
                                     />
                                 </View>
-                                <TouchableOpacity onPress={pickDocument} style={styles.dropbox}>
-                                    <FontAwesome name="file-pdf-o" size={24} color="#234F68" style={styles.inputIcon} />
-                                    <Text style={{ textAlign: 'center' }}>Pick property documents</Text>
+                                <TouchableOpacity onPress={pickMasterPlan} style={styles.dropbox}>
+                                    <MaterialCommunityIcons name="floor-plan" size={24} color="#234F68" style={styles.inputIcon} />
+                                    <Text style={{ textAlign: 'center' }}>Pick property Floor Plan</Text>
                                 </TouchableOpacity>
                             </View>
-                        </View>
-                        <View style={styles.stepContent}>
-                            <Text style={[styles.label, step4Errors.masterPlanDoc && { color: 'red' }]}>Upload Property Master Plan</Text>
-                            <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                <FlatList
-                                    data={masterPlanDoc}
-                                    horizontal
-                                    nestedScrollEnabled={true}
-                                    keyExtractor={(_, index) => index.toString()}
-                                    contentContainerStyle={styles.fileContainer}
-                                    renderItem={({ item, index }) => (
-                                        <View style={styles.thumbnailBox} className="border border-gray-300">
-                                            <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-                                            <Text className="text-center font-rubik-bold">Plan {index + 1}</Text>
-                                            <TouchableOpacity onPress={() => removeMasterPlan(index)} style={styles.deleteButton}>
-                                                <Text className="text-white">X</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                            <TouchableOpacity onPress={pickMasterPlan} style={styles.dropbox}>
-                                <MaterialCommunityIcons name="floor-plan" size={24} color="#234F68" style={styles.inputIcon} />
-                                <Text style={{ textAlign: 'center' }}>Pick property Floor Plan</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </ProgressStep>
-                </ProgressSteps>
-            </View>
-
-            {loading && (
-                <View className='absolute bottom-28 z-40 right-16'>
-                    <ActivityIndicator />
+                        </ProgressStep>
+                    </ProgressSteps>
                 </View>
             )}
 
@@ -1536,6 +1538,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
         marginTop: 10,
         fontWeight: 'bold',
+    },
+    subtext: {
+        fontSize: 12,
+        marginHorizontal: 5,
     },
     inputContainer: {
         flexDirection: 'row',

@@ -68,19 +68,19 @@ export default function RootLayout() {
                 await SplashScreen.hideAsync();
             }
         };
+        SystemUI.setBackgroundColorAsync('#fafafa');
 
         checkAuthSession();
     }, [fontsLoaded, error]);
 
-    useEffect(() => {
-        if (appIsReady && isAuthenticated !== null && rootNavigation?.isReady()) {
-            // console.log('RootLayout: Navigation ready, navigating to:', isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
-            router.replace(isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
-        } else {
-            // console.log('RootLayout: Navigation not ready or app not initialized');
-        }
-        SystemUI.setBackgroundColorAsync('#fafafa');
-    }, [appIsReady, isAuthenticated, rootNavigation]);
+    // useEffect(() => {
+        // if (appIsReady && isAuthenticated !== null && rootNavigation?.isReady()) {
+        //     // console.log('RootLayout: Navigation ready, navigating to:', isAuthenticated ? '/(root)/(tabs)/home' : '/(auth)/signin');
+        //     router.replace(isAuthenticated ? '/(root)/(tabs)/mapview' : '/(auth)/signin');
+        // } else {
+        //     // console.log('RootLayout: Navigation not ready or app not initialized');
+        // }
+    // }, [appIsReady, isAuthenticated, rootNavigation]);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>

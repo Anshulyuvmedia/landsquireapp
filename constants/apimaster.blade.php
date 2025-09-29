@@ -370,7 +370,7 @@ class ApiMasterController extends Controller
 
         $propertydetails = PropertyListing::find($id);
         $bokerId = $propertydetails->roleid;
-        $brokerdata = RegisterUser::select('username', 'profile', 'email', 'company_name', 'mobilenumber')->where('id', $bokerId)->where('user_type', 'broker')->where('verification_status', '1')->get();
+        $brokerdata = RegisterUser::select('id','username', 'profile', 'email', 'company_name', 'mobilenumber')->where('id', $bokerId)->where('user_type', 'broker')->where('verification_status', '1')->get();
         return response()->json([
             'success' => true,
             'brokerdata' => $brokerdata,
@@ -1220,6 +1220,7 @@ class ApiMasterController extends Controller
                 'name' => $rq->customername,
                 'mobilenumber' => $rq->mobilenumber,
                 'email' => $rq->email,
+                'propertyid' => $rq->propertyid,
                 'city' => $rq->city,
                 'state' => $rq->state,
                 'documents' => !empty($documents) ? json_encode($documents) : null,

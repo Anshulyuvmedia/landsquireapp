@@ -589,7 +589,7 @@ const Mapview = () => {
     const updateVisibleItems = useCallback(() => {
         if (!filteredData || !region) {
             setVisibleItems([]);
-            console.log('No filteredData or region available');
+            // console.log('No filteredData or region available');
             return;
         }
 

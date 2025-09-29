@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, ScrollView, RefreshControl, Dimensions, Text } from "react-native";
+import { View, ActivityIndicator, ScrollView, RefreshControl, Dimensions, Text, TouchableOpacity } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
@@ -24,9 +24,12 @@ import FeedbackSheet from "../../../components/PropertyDetails/FeedbackSheet";
 import images from "@/constants/images";
 import icons from "@/constants/icons";
 import { getUUIDSync } from '@/utils/uuid';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 const PropertyDetails = () => {
     const propertyId = useLocalSearchParams().id;
+    const { t, i18n } = useTranslation();
     const windowHeight = Dimensions.get("window").height;
     const windowWidth = Dimensions.get("window").width;
     const [propertyData, setPropertyData] = useState(null);
@@ -193,7 +196,7 @@ const PropertyDetails = () => {
             if (response.data && response.data.details) {
                 const apiData = response.data.details;
                 setPropertyData(apiData);
-                // console.log(apiData.bidstatus);
+                // console.log(apiData);
                 setBidBtn(apiData.bidstatus)
 
                 const thumbnail = apiData.thumbnail;
@@ -297,6 +300,7 @@ const PropertyDetails = () => {
                     setMasterPlanDocs([]);
                 }
                 const brokerDataFromApi = response.data.brokerdata && response.data.brokerdata.length > 0 ? response.data.brokerdata[0] : null;
+                // console.log('brokerDataFromApi...', brokerDataFromApi);
                 setBrokerData(brokerDataFromApi);
                 if (!brokerDataFromApi) {
                     console.warn("No broker data available for this property.");
@@ -537,6 +541,34 @@ const PropertyDetails = () => {
                 />
                 <MasterPlanSection masterPlanDocs={masterPlanDocs} />
                 {/* <PriceHistorySection priceHistoryData={priceHistoryData} /> */}
+                <View className="px-4 flex-row justify-center">
+                    <TouchableOpacity
+                        onPress={() => router.push({
+                            pathname: "/loanenquiry",
+                            params: {
+                                id: propertyData.id,
+                                propertyname: propertyData.property_name,
+                                price: propertyData.price,
+                            }
+                        })}
+                        className="bg-primary-300 flex-row justify-between px-4 py-4 rounded-2xl shadow-md flex-1 items-center"
+                        activeOpacity={0.8}
+                    >
+                        <View className="flex-row items-center flex-shrink">
+                            <Ionicons name="home-outline" size={30} color="white" />
+                            <View className="ms-3">
+                                <Text className="text-white font-semibold text-base">
+                                    Apply for Property loan
+                                </Text>
+                                <Text className="text-white/80 text-xs mt-1">
+                                    Easy and hassle free loan 
+                                </Text>
+                            </View>
+                        </View>
+                        <Ionicons name="chevron-forward" size={22} color="white" />
+                    </TouchableOpacity>
+                </View>
+
             </ScrollView>
             <LightboxModal
                 isLightboxVisible={isLightboxVisible}

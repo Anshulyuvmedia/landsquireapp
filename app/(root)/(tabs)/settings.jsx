@@ -284,13 +284,13 @@ const Dashboard = () => {
               title={t('notifications')}
               onPress={() => handleNavigate('notifications')}
             />
-            {userData?.user_type !== 'bankagent' && (
+            {/* {userData?.user_type !== 'bankagent' && (
               <MenuItem
                 icon="attach-money"
                 title={t('applyforloan')}
                 onPress={() => handleNavigate('loanenquiry')}
               />
-            )}
+            )} */}
             {userData?.user_type !== 'bankagent' && (
               <MenuItem
                 icon="house-siding"

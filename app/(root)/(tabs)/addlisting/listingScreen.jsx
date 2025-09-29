@@ -88,6 +88,7 @@ const ListingScreen = () => {
                     renderScene={renderScene}
                     onIndexChange={setIndex}
                     initialLayout={{ width: layout.width }}
+                    swipeEnabled={false}
                     renderTabBar={(props) => <CustomTabBar {...props} layout={layout} />}
                 />
             </View>

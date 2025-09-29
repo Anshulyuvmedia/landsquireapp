@@ -268,9 +268,26 @@ const RentLeads = () => {
                 </View>
             ) : enquiries.length === 0 ? (
                 <View style={styles.emptyContainer}>
+                    <Image source={icons.alertDanger} style={styles.noDataIcon} />
                     <Text style={[styles.emptyText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                         {t('noEnquiries')}
                     </Text>
+                    <TouchableOpacity
+                        style={{
+                            marginTop: 10,
+                            alignSelf: 'center',
+                            backgroundColor: '#234F68',
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                            borderRadius: 8,
+                        }}
+                        onPress={onRefresh}
+                        disabled={loading}
+                    >
+                        <Text style={{ color: '#fff', fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }}>
+                            Refresh
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             ) : (
                 <FlatList
@@ -444,7 +461,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: verticalScale(50),
+        // marginTop: verticalScale(50),
     },
     emptyText: {
         fontSize: moderateScale(16),
@@ -617,5 +634,9 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: moderateScale(14),
         fontFamily: 'Rubik-Medium',
+    },
+    noDataIcon: {
+        width: scale(120),
+        height: scale(120),
     },
 });

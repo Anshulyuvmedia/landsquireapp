@@ -148,15 +148,12 @@ const Signin = () => {
 
           if (userType === 'user') {
             // console.log('1');
-
             router.push('/mapview');
           } else if (userType === 'broker' || userType === 'bankagent') {
             // console.log('2');
-
             router.push('/(root)/(tabs)/home');
           } else {
             // console.log('3');
-
             // fallback if userType is unknown
             router.push('/(root)/(tabs)/home');
           }

@@ -186,6 +186,20 @@ const resources = {
             price_range: 'Price Range',
             area_range: 'Area Range',
 
+            // New translations for BuyingWishlists
+            error: 'Error',
+            userDataMissing: 'User data or ID is missing. Please log in again.',
+            unexpectedResponse: 'Unexpected response from server.',
+            fetchError: 'Failed to fetch properties. Please try again.',
+            loadingWishlist: 'Loading wishlist...',
+            noWishlistItems: 'No Wishlist Items Yet',
+            noWishlistMessage: 'It looks like you haven’t added any properties to your wishlist. Start by exploring properties!',
+            refreshing: 'Refreshing...',
+            ok: 'OK',
+            wishlistTitle: 'Your wishlist of properties',
+            view: 'View',
+            active: 'Active',
+            inactive: 'Inactive',
         },
     },
     hi: {
@@ -372,6 +386,21 @@ const resources = {
             upcoming_projects: 'आगामी परियोजनाएँ',
             all_properties_seen: 'आपने सभी प्रॉपर्टी देख ली हैं',
             try_again: 'फिर से कोशिश करें',
+
+            // New translations for BuyingWishlists
+            error: 'त्रुटि',
+            userDataMissing: 'उपयोगकर्ता डेटा या आईडी गायब है। कृपया फिर से लॉगिन करें।',
+            unexpectedResponse: 'सर्वर से अनपेक्षित जवाब।',
+            fetchError: 'प्रॉपर्टी लाने में असफल। कृपया फिर से कोशिश करें।',
+            loadingWishlist: 'विशलिस्ट लोड हो रही है...',
+            noWishlistItems: 'अभी कोई विशलिस्ट आइटम नहीं',
+            noWishlistMessage: 'लगता है आपने अपनी विशलिस्ट में कोई प्रॉपर्टी नहीं जोड़ी। प्रॉपर्टी खोज शुरू करें!',
+            refreshing: 'ताज़ा हो रहा है...',
+            ok: 'ठीक है',
+            wishlistTitle: 'आपकी प्रॉपर्टी की विशलिस्ट',
+            view: 'देखें',
+            active: 'सक्रिय',
+            inactive: 'निष्क्रिय',
         },
     },
 };

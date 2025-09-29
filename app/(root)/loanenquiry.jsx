@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TextInput, Alert, FlatList, TouchableOpacity, Image, Animated, Platform, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Alert, FlatList, TouchableOpacity, Image, Platform, ScrollView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy'; // Use legacy API
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { MaterialIcons, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
-import { useRouter, useNavigation } from 'expo-router';
+import { useRouter, useNavigation, useLocalSearchParams } from 'expo-router';
 import images from "@/constants/images";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,7 +13,7 @@ const LoanEnquiry = () => {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const [loanAmount, setLoanAmount] = useState('');
-    const [rawLoanAmount, setRawLoanAmount] = useState(''); // Store raw numeric value
+    const [rawLoanAmount, setRawLoanAmount] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -22,10 +22,11 @@ const LoanEnquiry = () => {
     const [loggedinUserId, setLoggedinUserId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-
+    const params = useLocalSearchParams();
     const successSheetRef = useRef(null);
     const errorSheetRef = useRef(null);
+
+    // console.log('params: ', params);
 
     const loadUserData = async () => {
         try {
@@ -54,48 +55,73 @@ const LoanEnquiry = () => {
 
     useEffect(() => {
         loadUserData();
+    }, []);
 
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-        }).start();
-    }, [fadeAnim]);
-
-    const pickDocument = async (type) => {
+    const pickDocument = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: ['application/pdf'],
+                type: ['application/pdf', 'image/*'], // Allow PDFs and images
                 multiple: true,
+                copyToCacheDirectory: true, // Ensure file is copied to app's cache
             });
 
-            if (!result.canceled) {
+            if (!result.canceled && result.assets && result.assets.length > 0) {
                 const newDocuments = await Promise.all(
                     result.assets.map(async (doc) => {
                         try {
-                            const fileInfo = await FileSystem.getInfoAsync(doc.uri);
+                            let fileUri = doc.uri;
+                            let fileName = doc.name || `document_${Date.now()}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
+                            let mimeType = doc.mimeType || 'application/octet-stream';
+                            let fileSize = doc.size || 0;
+
+                            // Verify file accessibility using legacy API
+                            const fileInfo = await FileSystem.getInfoAsync(fileUri, { size: true });
                             if (!fileInfo.exists) {
-                                throw new Error(`File not found: ${doc.uri}`);
+                                console.warn(`File does not exist or is inaccessible: ${fileUri}`);
+                                throw new Error(`File not found: ${fileName}`);
                             }
+
+                            // On iOS, replace 'file://' prefix if present
+                            if (Platform.OS === 'ios' && fileUri.startsWith('file://')) {
+                                fileUri = fileUri.replace('file://', '');
+                            }
+
+                            // On Android, attempt to copy to cache if file is inaccessible
+                            if (Platform.OS === 'android' && !fileInfo.exists) {
+                                const cacheUri = `${FileSystem.cacheDirectory}${fileName}`;
+                                await FileSystem.copyAsync({
+                                    from: fileUri,
+                                    to: cacheUri,
+                                });
+                                const cacheInfo = await FileSystem.getInfoAsync(cacheUri);
+                                if (cacheInfo.exists) {
+                                    fileUri = cacheUri;
+                                    fileSize = cacheInfo.size;
+                                } else {
+                                    throw new Error(`Failed to copy ${fileName} to cache`);
+                                }
+                            }
+
                             return {
-                                uri: doc.uri,
-                                name: doc.name,
-                                size: fileInfo.size,
-                                mimeType: doc.mimeType,
+                                uri: fileUri,
+                                name: fileName,
+                                size: fileSize,
+                                mimeType: mimeType,
                             };
                         } catch (fileError) {
-                            console.error('File processing error for', doc.name, ':', fileError);
-                            throw new Error(`Failed to process ${doc.name}`);
+                            console.error(`Error processing file ${doc.name || 'unknown'}:`, fileError);
+                            throw new Error(`Failed to process ${doc.name || 'document'}`);
                         }
                     })
                 );
+
                 setPropertyDocuments((prev) => [...prev, ...newDocuments]);
             } else {
                 Alert.alert('Info', 'Document selection was cancelled.');
             }
         } catch (err) {
-            Alert.alert('Error', `Failed to select document: ${err.message || 'Unknown error'}`);
             console.error('Document picker error:', err);
+            Alert.alert('Error', `Failed to select document: ${err.message || 'Unknown error'}`);
         }
     };
 
@@ -117,7 +143,6 @@ const LoanEnquiry = () => {
     const handleSubmit = async () => {
         const errorMessage = validateForm();
         if (errorMessage) {
-            // Alert.alert('Validation Error', errorMessage);
             errorSheetRef.current?.open();
             return;
         }
@@ -126,6 +151,7 @@ const LoanEnquiry = () => {
         try {
             const formData = new FormData();
             formData.append('userid', loggedinUserId);
+            formData.append('propertyid', params.id);
             formData.append('customername', name);
             formData.append('mobilenumber', phone);
             formData.append('email', email);
@@ -193,7 +219,19 @@ const LoanEnquiry = () => {
         errorSheetRef.current?.close();
     };
 
-    // Utility function to format number in Indian style (e.g., 10,00,000)
+    const formatINR = (amount) => {
+        if (!amount || isNaN(amount)) return "₹0";
+        const num = Number(amount);
+        const absNum = Math.abs(num);
+        const prefix = num < 0 ? "-₹" : "₹";
+        if (absNum >= 1e7) {
+            return prefix + (absNum / 1e7).toFixed(2).replace(/\.00$/, "") + " Cr";
+        } else if (absNum >= 1e5) {
+            return prefix + (absNum / 1e5).toFixed(2).replace(/\.00$/, "") + " Lakh";
+        }
+        return prefix + absNum.toLocaleString("en-IN");
+    };
+
     const formatIndianNumber = (number) => {
         if (!number) return '';
         const numStr = number.toString().replace(/[^0-9]/g, '');
@@ -212,16 +250,14 @@ const LoanEnquiry = () => {
 
     const handleBack = () => {
         if (navigation.canGoBack()) {
-            // console.log('EditProfile: Navigating back');
             navigation.goBack();
         } else {
-            // console.log('EditProfile: Cannot go back, navigating to dashboard');
             router.navigate('/(root)/(tabs)/settings');
         }
     };
 
     return (
-        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+        <View style={styles.container}>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
@@ -234,7 +270,7 @@ const LoanEnquiry = () => {
                         style={styles.backButton}
                         activeOpacity={0.7}
                     >
-                        <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
+                        <MaterialIcons name="arrow-back" size={24} color="#000" />
                     </TouchableOpacity>
                 </View>
                 <Text style={styles.headerSubtitle}>Apply for the best bank loan offers</Text>
@@ -267,8 +303,13 @@ const LoanEnquiry = () => {
                     </View>
                 </View>
 
+                <View className="flex-row justify-between bg-blue-600 p-3 rounded-2xl mb-3">
+                    <Text className="text-white fw-bold">{params.propertyname}</Text>
+                    <Text className="text-white fw-bold">Price: {formatINR(params.price)}</Text>
+                </View>
                 <View style={styles.formContainer}>
                     <View style={styles.inputGroup}>
+
                         <Text style={styles.label}>Loan Amount Required (INR)</Text>
                         <View style={styles.inputWrapper}>
                             <FontAwesome6 name="money-bill-1" size={20} color="#0052CC" style={styles.inputIcon} />
@@ -308,7 +349,7 @@ const LoanEnquiry = () => {
                                 </View>
                             )}
                         />
-                        <TouchableOpacity onPress={() => pickDocument('property')} style={styles.uploadButton}>
+                        <TouchableOpacity onPress={pickDocument} style={styles.uploadButton}>
                             <FontAwesome name="upload" size={20} color="#0052CC" />
                             <Text style={styles.uploadText}>Upload Documents</Text>
                         </TouchableOpacity>
@@ -332,7 +373,7 @@ const LoanEnquiry = () => {
                 animationType="slide"
                 customStyles={{ container: styles.sheetContainer }}
             >
-                <View style={[styles.sheetContent, { marginBottom: insets.bottom, }]}>
+                <View style={[styles.sheetContent, { marginBottom: insets.bottom }]}>
                     <MaterialIcons name="check-circle" size={48} color="#10B981" style={styles.sheetIcon} />
                     <Text style={styles.sheetTitle}>Application Submitted!</Text>
                     <Text style={styles.sheetText}>
@@ -363,7 +404,7 @@ const LoanEnquiry = () => {
                     <Text style={styles.sheetText}>
                         An error occurred. Please check your input and try again.
                     </Text>
-                    <View style={[styles.sheetButtonContainer, { marginBottom: insets.bottom, }]}>
+                    <View style={[styles.sheetButtonContainer, { marginBottom: insets.bottom }]}>
                         <TouchableOpacity
                             onPress={closeErrorSheet}
                             style={[styles.sheetButton, styles.sheetPrimaryButton]}
@@ -379,7 +420,7 @@ const LoanEnquiry = () => {
                     </View>
                 </View>
             </RBSheet>
-        </Animated.View>
+        </View>
     );
 };
 
@@ -412,9 +453,35 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     backButton: {
-        backgroundColor: '#0052CC',
-        borderRadius: 12,
-        padding: 8,
+        backgroundColor: '#f4f2f7',
+        borderRadius: 20,
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    propertyInfo: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    propertyInfoTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1A202C',
+        marginBottom: 8,
+    },
+    propertyInfoText: {
+        fontSize: 14,
+        fontWeight: '400',
+        color: '#4A5568',
+        marginBottom: 4,
     },
     card: {
         backgroundColor: '#FFFFFF',

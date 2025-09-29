@@ -396,6 +396,7 @@ const CrmPortal = () => {
                 </View>
             ) : filteredEnquiries.length === 0 ? (
                 <View style={styles.noDataContainer}>
+                    <Image source={icons.alertDanger} style={styles.noDataIcon} />
                     <Text style={styles.noDataText}>{t('No enquiries available')}</Text>
                 </View>
             ) : (
@@ -482,7 +483,7 @@ const CrmPortal = () => {
                         items={cities}
                         style={pickerSelectStyles}
                         value={tempSelectedCity}
-                        // placeholder={'Select city'}
+                    // placeholder={'Select city'}
                     />
 
                     <Text style={styles.filterLabel}>{t('propertyType')}</Text>
@@ -491,7 +492,7 @@ const CrmPortal = () => {
                         items={propertyTypes}
                         style={pickerSelectStyles}
                         value={tempSelectedPropertyType}
-                        // placeholder={'Select Property type'}
+                    // placeholder={'Select Property type'}
                     />
 
                     <View style={styles.bottomSheetButtons}>
@@ -815,5 +816,9 @@ const pickerSelectStyles = StyleSheet.create({
     },
     placeholder: {
         color: '#9CA3AF',
+    },
+    noDataIcon: {
+        width: scale(120),
+        height: scale(120),
     },
 });

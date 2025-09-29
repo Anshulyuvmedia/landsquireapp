@@ -181,7 +181,10 @@ const Allbrokers = () => {
                     />
                 }
                 ListEmptyComponent={() => (
-                    <Text style={styles.emptyText}>{t('noBrokersAvailable')}</Text>
+                    <View>
+                        <Image source={icons.alertDanger} style={styles.noDataIcon} />
+                        <Text style={styles.emptyText}>{t('noBrokersAvailable')}</Text>
+                    </View>
                 )}
             />
         </View>
@@ -307,5 +310,9 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         textAlign: 'center',
         marginTop: verticalScale(20),
+    },
+    noDataIcon: {
+        width: scale(120),
+        height: scale(120),
     },
 });

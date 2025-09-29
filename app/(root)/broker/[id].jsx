@@ -26,6 +26,7 @@ const Broker = () => {
     const fetchBrokerProfile = async () => {
         setLoading(true);
         setError(null);
+        // console.log('broker id', id);
         try {
             const response = await axios.get(`https://landsquire.in/api/brokerprofile?id=${id}`);
             if (response.data.success) {
@@ -140,7 +141,7 @@ const Broker = () => {
             ) : null}
 
             <View style={styles.listingsSection}>
-                
+
                 {loading ? (
                     <View>
                         <ActivityIndicator size="large" color="#8bc83f" />

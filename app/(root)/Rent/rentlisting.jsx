@@ -40,7 +40,7 @@ const RentListing = () => {
 
     const handleCardPress = (id) => router.push(`/properties/${id}`);
     const handleEditPress = (id) => router.push(`/Rent/editrentproperty/${id}`);
-    const handleAddProperty = () => router.push('/(tabs)/addlisting/addproperty');
+    const handleAddProperty = () => router.push('/(tabs)/addlisting/');
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';

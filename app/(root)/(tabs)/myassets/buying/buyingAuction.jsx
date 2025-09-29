@@ -6,6 +6,7 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import icons from '@/constants/icons';
 
 const BuyingAuction = () => {
   const { t, i18n } = useTranslation();
@@ -282,6 +283,7 @@ const BuyingAuction = () => {
         </View>
       ) : enquiries.length === 0 ? (
         <View style={styles.emptyContainer}>
+          <Image source={icons.alertDanger} style={styles.noDataIcon} />
           <Text style={[styles.emptyText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
             {t('noEnquiries') || 'No enquiries found'}
           </Text>
@@ -541,7 +543,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: verticalScale(50),
+    // marginTop: verticalScale(50),
   },
   emptyText: {
     fontSize: moderateScale(16),
@@ -718,5 +720,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik-Regular',
     color: '#000',
     width: scale(200),
+  },
+  noDataIcon: {
+    width: scale(120),
+    height: scale(120),
   },
 });
