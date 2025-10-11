@@ -9,7 +9,7 @@ import { Switch } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import icons from '@/constants/icons';
 import { useTranslation } from 'react-i18next';
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
 // Helper to format price in Indian Rupees
 const formatINR = (amount) => {
@@ -42,6 +42,13 @@ const MySellingProperties = () => {
 
   const handleCardPress = (id) => router.push(`/properties/${id}`);
   const handleEditPress = (id) => router.push(`/dashboard/editproperties/${id}`);
+  const handleAuctionPress = (id) => {
+    router.push({
+      pathname: "/(tabs)/myassets/selling/mySellingAuction",
+      params: { propertyid: id },
+    });
+  };
+
   const handleAddProperty = () => router.push('/addlisting');
 
   const handleEditBidPress = (property) => {
@@ -310,6 +317,11 @@ const MySellingProperties = () => {
                         {item.category} - {item.subcategory}
                       </Text>
                     </View>
+                    <TouchableOpacity style={styles.editButton} onPress={() => handleEditPress(item.id)}>
+                      <Text style={[styles.editText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
+                        <Feather name="edit" size={16} color="white" /> {t('editProperty')}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                   <View style={styles.textContent}>
                     <Text style={[styles.propertyName, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
@@ -324,6 +336,7 @@ const MySellingProperties = () => {
                           {item.city}
                         </Text>
                       </View>
+
                     </View>
                     <View style={styles.priceRow}>
                       <Text style={[styles.priceText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }]}>
@@ -358,9 +371,9 @@ const MySellingProperties = () => {
                       </View>
                     </View>
                     <View style={styles.buttonRow}>
-                      <TouchableOpacity style={styles.editButton} onPress={() => handleEditPress(item.id)}>
+                      <TouchableOpacity style={styles.auctionButton} onPress={() => handleAuctionPress(item.id)}>
                         <Text style={[styles.editText, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                          {t('editProperty')}
+                          {t('Auction')}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.bidButton} onPress={() => handleEditBidPress(item)}>
@@ -421,7 +434,7 @@ const MySellingProperties = () => {
               </View>
             ) : selectedProperty?.bidliverequest === '2' && selectedProperty?.rejectionReason ? (
               <View>
-                <View style={{padding: 10, backgroundColor: '#fecaca', borderColor: '#dc2626', borderWidth: 2, borderRadius: 10, marginBottom: 5,}}>
+                <View style={{ padding: 10, backgroundColor: '#fecaca', borderColor: '#dc2626', borderWidth: 2, borderRadius: 10, marginBottom: 5, }}>
                   <Text style={[styles.switchLabel, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular', color: 'red', textAlign: 'center', fontWeight: 'bold', }]}>
                     Bid Request Rejected
                   </Text>
@@ -700,6 +713,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   editButton: {
+    position: 'absolute',
+    left: 15,
+    top: 15,
+    backgroundColor: '#8bc83f',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '48%',
+    height: verticalScale(25),
+    borderRadius: moderateScale(10),
+  },
+  auctionButton: {
     backgroundColor: '#8bc83f',
     justifyContent: 'center',
     alignItems: 'center',

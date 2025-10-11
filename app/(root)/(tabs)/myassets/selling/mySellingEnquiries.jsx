@@ -104,7 +104,14 @@ const MySellingEnquiries = () => {
         if (formatted.length < 10) return null;
         return formatted;
     };
-
+    const formatDateDDMMYY = (dateString) => {
+        if (!dateString) return null;
+        const d = new Date(dateString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = String(d.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
+    };
     const handleCallPress = async (enquiry) => {
 
         if (enquiry?.mobilenumber) {
@@ -161,7 +168,7 @@ const MySellingEnquiries = () => {
                     <View>
                         <Text style={styles.cardLabel}>{t('Date')}:</Text>
                         <Text style={[styles.cardDate, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                            {new Date(item.created_at).toLocaleDateString()}
+                            {formatDateDDMMYY(item?.created_at) || t('notAvailable')}
                         </Text>
                     </View>
                 </View>

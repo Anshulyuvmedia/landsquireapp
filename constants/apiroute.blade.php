@@ -11,7 +11,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-
 Route::controller(ApiMasterController::class)->group(function () {
     Route::post('/generateotp', 'generateotp')->name('api.generateotp');
     Route::post('/verifyotp', 'verifyotp')->name('api.verifyotp');
@@ -48,6 +47,7 @@ Route::controller(ApiMasterController::class)->group(function () {
     Route::post('/trackvisit', 'trackvisit')->name('trackvisit');
     Route::get('/getVisitorCount/{propertyId}', 'getVisitorCount')->name('getVisitorCount');
     Route::get('/fetchenquiry/{id}', 'fetchenquiry')->name('fetchenquiry');
+    Route::get('/fetchauctionenquiry/{propertyId}', 'fetchauctionenquiry')->name('fetchauctionenquiry');
     Route::post('/updatefollowup', 'updatefollowup')->name('updatefollowup');
     Route::get('/upcomingproject', 'upcomingproject')->name('upcomingproject');
     Route::get('/fetchproject/{id}', 'fetchproject')->name('fetchproject');

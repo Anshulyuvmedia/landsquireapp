@@ -300,7 +300,7 @@ const Signin = () => {
             <View style={styles.otpSheetContent}>
               <Text style={styles.otpSheetHeader}>Verify Your OTP</Text>
               <Text style={styles.otpSheetSubtext}>Enter the 6-digit code sent to +91 {mobileNumber}</Text>
-              <Text style={styles.otpSheetSubtext}>Enter OTP: {otpShow}</Text>
+              {/* <Text style={styles.otpSheetSubtext}>Enter OTP: {otpShow}</Text> */}
               <View style={styles.otpInputContainer}>
                 {otp.map((digit, index) => (
                   <TextInput

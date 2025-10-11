@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\File;
 use App\Models\Wishlist;
 use App\Models\PropertyVisit;
 use App\Models\UpcomingProject;
+use Illuminate\Support\Facades\Http;
 
 class ApiMasterController extends Controller
 {
@@ -180,7 +181,7 @@ class ApiMasterController extends Controller
 
         if ($user) {
             $otp = rand(100000, 999999);
-            // $this->sendOtp($user->mobilenumber, $otp);
+            $this->sendOtp($user->mobilenumber, $otp);
             $user->update(['otp' => $otp]);
 
             // Log::info('OTP generated for user ID:', ['id' => $user->id, 'otp' => $otp]);
@@ -205,37 +206,47 @@ class ApiMasterController extends Controller
     }
     public function sendOtp($mobilenumber, $otpnumber)
     {
-        $name = "Land Squire";
-
+        $name = 'Land Squire';
+        //     Log::info('Sending OTP', [
+        //     'mobile_number' => $mobilenumber,
+        //     'otp' => $otpnumber
+        // ]);
         try {
-            $response = Http::withToken(env('SMS_KEY'))
-                ->post('https://sms.jaipursmshub.in/api_v2/message/send', [
-                    'sender_id' => 'PTPSMS',
-                    'dlt_template_id' => '1207168605001414924',
-                    'message' => 'Hi Your User OTP is: ' . $otpnumber . ' Thank you ! ' . $name . ' PTPSMS',
-                    'mobile_no' => $mobilenumber,
-                ]);
+            $response = Http::withToken(env('SMS_KEY'))->post('https://sms.jaipursmshub.in/api_v2/message/send', [
+                'sender_id' => 'PTPSMS',
+                'dlt_template_id' => '1207168605001414924',
+                'message' => 'Hi Your User OTP is: ' . $otpnumber . ' Thank you ! ' . $name . ' PTPSMS',
+                'mobile_no' => $mobilenumber,
+            ]);
 
             if ($response->successful()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'OTP sent successfully',
-                    'sms_api_response' => $response->json(),
-                ], 200);
+                return response()->json(
+                    [
+                        'success' => true,
+                        'message' => 'OTP sent successfully',
+                        'sms_api_response' => $response->json(),
+                    ],
+                    200,
+                );
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to send OTP',
-                'error' => $response->json(),
-            ], 500);
-
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Failed to send OTP',
+                    'error' => $response->json(),
+                ],
+                500,
+            );
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong',
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Something went wrong',
+                    'error' => $e->getMessage(),
+                ],
+                500,
+            );
         }
     }
     public function verifyotp(Request $request)
@@ -370,7 +381,7 @@ class ApiMasterController extends Controller
 
         $propertydetails = PropertyListing::find($id);
         $bokerId = $propertydetails->roleid;
-        $brokerdata = RegisterUser::select('id','username', 'profile', 'email', 'company_name', 'mobilenumber')->where('id', $bokerId)->where('user_type', 'broker')->where('verification_status', '1')->get();
+        $brokerdata = RegisterUser::select('id', 'username', 'profile', 'email', 'company_name', 'mobilenumber')->where('id', $bokerId)->where('user_type', 'broker')->where('verification_status', '1')->get();
         return response()->json([
             'success' => true,
             'brokerdata' => $brokerdata,
@@ -1109,16 +1120,14 @@ class ApiMasterController extends Controller
                 return $user;
             }
 
-            // Fetch my enquiries with propertyfor
-            $myenquiries = Lead::where('userid', $user->id)->where('form_type', 'broker')->join('property_listings', 'leads.propertyid', '=', 'property_listings.id')->select('leads.*', 'property_listings.propertyfor')->get();
+            // Fetch my enquiries with propertyfor, ordered by latest
+            $myenquiries = Lead::where('userid', $user->id)->where('form_type', 'broker')->join('property_listings', 'leads.propertyid', '=', 'property_listings.id')->select('leads.*', 'property_listings.propertyfor')->orderBy('leads.created_at', 'desc')->get();
 
-            // Log::info('My Enquiries', $myenquiries->toArray());
+            // Broker enquiries, ordered by latest
+            $brokerenquiries = Lead::where('agentid', $user->id)->where('form_type', 'broker')->join('property_listings', 'leads.propertyid', '=', 'property_listings.id')->select('leads.*', 'property_listings.propertyfor')->orderBy('leads.created_at', 'desc')->get();
 
-            // Broker enquiries
-            $brokerenquiries = Lead::where('agentid', $user->id)->where('form_type', 'broker')->join('property_listings', 'leads.propertyid', '=', 'property_listings.id')->select('leads.*', 'property_listings.propertyfor')->get();
-
-            // Loan enquiries
-            $loanenquiries = Lead::where('form_type', 'bankagent')->get();
+            // Loan enquiries, ordered by latest
+            $loanenquiries = Lead::where('form_type', 'bankagent')->orderBy('created_at', 'desc')->get();
 
             return response()->json([
                 'success' => true,
@@ -1132,6 +1141,84 @@ class ApiMasterController extends Controller
         }
     }
 
+    public function fetchauctionenquiry(Request $request, $propertyId)
+    {
+        try {
+            $user = $this->validateToken($request);
+            if (is_a($user, '\Illuminate\Http\JsonResponse')) {
+                return $user;
+            }
+
+            $brokerenquiries = Lead::where('agentid', $user->id)
+                ->where('form_type', 'broker')
+                ->where('leads.propertyid', $propertyId)
+                ->join('property_listings', 'leads.propertyid', '=', 'property_listings.id')
+                ->where(function ($q) {
+                    $q->whereNull('property_listings.propertyfor')->orWhere('property_listings.propertyfor', 'Sell');
+                })
+                ->select('leads.*', 'property_listings.propertyfor')
+                ->get();
+
+            if ($brokerenquiries->isEmpty()) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'No leads found for this property',
+                        'brokerenquiries' => [],
+                    ],
+                    404,
+                );
+            }
+
+            // Normalize bids
+            $brokerenquiries = $brokerenquiries->map(function ($lead) {
+                $bids = [];
+
+                if (is_array($lead->propertybid)) {
+                    $bids = $lead->propertybid;
+                } elseif (is_string($lead->propertybid)) {
+                    $decoded = json_decode($lead->propertybid, true);
+                    if (is_array($decoded)) {
+                        $bids = $decoded;
+                    } elseif (!empty($lead->propertybid)) {
+                        $bids = [['bidamount' => $lead->propertybid, 'date' => $lead->created_at]];
+                    }
+                }
+
+                $bids = collect($bids)
+                    ->map(
+                        fn($b) => [
+                            'bidamount' => floatval($b['bidamount'] ?? 0),
+                            'date' => $b['date'] ?? $lead->created_at,
+                        ],
+                    )
+                    ->filter(fn($b) => $b['bidamount'] > 0)
+                    ->sortByDesc('bidamount')
+                    ->values()
+                    ->all();
+
+                $lead->propertybid = $bids;
+                return $lead;
+            });
+
+            $brokerenquiries = $brokerenquiries->sortByDesc(fn($lead) => $lead->propertybid[0]['bidamount'] ?? 0)->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'brokerenquiries' => $brokerenquiries,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in fetchauctionenquiry: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Internal server error: ' . $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
     public function fetchenquiry(Request $request, $id)
     {
         // Log::info('fetchenquiry called', ['id' => $id, 'headers' => $request->headers->all()]);
@@ -1142,7 +1229,7 @@ class ApiMasterController extends Controller
                 return $user;
             }
 
-            $lead = Lead::where('id', $id)->first();
+            $lead = Lead::where('id', $id)->orderBy('created_at', 'desc')->first();
             if (!$lead) {
                 Log::warning('No lead found for ID: ' . $id . ', user ID: ' . $user->id);
                 return response()->json(
@@ -1833,5 +1920,4 @@ class ApiMasterController extends Controller
             200,
         );
     }
-    
 }

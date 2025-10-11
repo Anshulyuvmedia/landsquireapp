@@ -1,6 +1,6 @@
 import { StyleSheet, ScrollView, Text, View, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Linking, Alert } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import RBSheet from 'react-native-raw-bottom-sheet'; // Corrected import
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,6 +10,7 @@ import { MaterialIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import icons from '@/constants/icons';
 
 const MySellingAuction = () => {
+    const params = useLocalSearchParams();
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const [enquiries, setEnquiries] = useState([]);
@@ -17,67 +18,49 @@ const MySellingAuction = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedEnquiry, setSelectedEnquiry] = useState(null);
     const rbSheetRef = useRef();
+    const currentPropertyId = params.propertyid;
 
     useEffect(() => {
-        fetchUserEnquiries();
+        fetchAuctionEnquiries();
     }, []);
 
-    const fetchUserEnquiries = async () => {
+    const fetchAuctionEnquiries = async () => {
         setLoading(true);
         try {
-            const parsedPropertyData = JSON.parse(await AsyncStorage.getItem('userData'));
-            if (!parsedPropertyData?.id) {
-                console.error('User data or ID missing');
-                return;
-            }
             const token = await AsyncStorage.getItem('userToken');
 
-            const response = await axios.get(`https://landsquire.in/api/fetchenquiries?id=${parsedPropertyData.id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'User-Agent': 'LandSquireApp/1.0 (React Native)',
-                },
-            });
-            // console.log('API brokerenquiries:', response.data.brokerenquiries);
-
-            if (response.data?.brokerenquiries) {
-                const parsedEnquiries = response.data.brokerenquiries
-                    .filter(enquiry => enquiry.propertyfor === null || enquiry.propertyfor === 'Sell')
-                    .map(enquiry => {
-                        let bids = [];
-
-                        if (typeof enquiry.propertybid === "string" && enquiry.propertybid.trim().startsWith("[")) {
-                            try {
-                                bids = JSON.parse(enquiry.propertybid).filter(
-                                    b => b.bidamount !== null && b.bidamount !== ""
-                                );
-                            } catch (e) {
-                                console.error("Failed to parse propertybid JSON:", e);
-                            }
-                        } else if (enquiry.propertybid !== null && enquiry.propertybid !== "") {
-                            bids = [{ bidamount: enquiry.propertybid, date: enquiry.created_at }];
-                        }
-
-                        return { ...enquiry, propertybid: bids };
-                    })
-                    .filter(enquiry => enquiry.propertybid.length > 0); // only keep with valid bids
-
-                setEnquiries(parsedEnquiries);
+            // Fetch leads for the current property (backend already filters + sorts)
+            const response = await axios.get(
+                `https://landsquire.in/api/fetchauctionenquiry/${currentPropertyId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'User-Agent': 'LandSquireApp/1.0 (React Native)',
+                    },
+                }
+            );
+            // console.log(response);
+            if (response.data?.success && Array.isArray(response.data.brokerenquiries)) {
+                setEnquiries(response.data.brokerenquiries);
+                // console.log('FINAL SORTED ENQUIRIES:', response.data.brokerenquiries);
             } else {
-                console.error("Unexpected API response format:", response.data);
+                console.error('No enquiries found or unexpected response:', response.data);
+                setEnquiries([]);
             }
-
         } catch (error) {
-            console.error('Error fetching enquiries:', error);
+            console.error('Error fetching auction enquiries:', error);
+            setEnquiries([]);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
 
+
+
     const onRefresh = async () => {
         setRefreshing(true);
-        await fetchUserEnquiries();
+        await fetchAuctionEnquiries();
     };
 
     const openDetails = (enquiry) => {
@@ -126,6 +109,14 @@ const MySellingAuction = () => {
         }
         if (formatted.length < 10) return null;
         return formatted;
+    };
+    const formatDateDDMMYY = (dateString) => {
+        if (!dateString) return null;
+        const d = new Date(dateString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = String(d.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
     };
 
     const handleCallPress = async (enquiry) => {
@@ -184,7 +175,7 @@ const MySellingAuction = () => {
                     <View>
                         <Text style={styles.cardLabel}>{t('Date')}:</Text>
                         <Text style={[styles.cardDate, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
-                            {new Date(latestBid.date || item.created_at).toLocaleDateString()}
+                            {formatDateDDMMYY(latestBid?.date || item?.created_at) || t('notAvailable')}
                         </Text>
                     </View>
                 </View>
@@ -265,16 +256,16 @@ const MySellingAuction = () => {
 
     return (
         <View style={styles.container}>
-            {/* <View style={styles.header}>
+            <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Image source={icons.backArrow} style={styles.backIcon} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>{t('My Leads')}</Text>
+                <Text style={[styles.title, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Bold' : 'Rubik-Bold' }]}>{t('Auction')}</Text>
                 <TouchableOpacity onPress={() => router.push('/notifications')}>
                     <Image source={icons.bell} style={styles.bellIcon} />
                 </TouchableOpacity>
             </View>
-            <PropertyNavigation path={'myleads'} /> */}
+
             <View className='mx-auto mt-3'>
                 <Text>All the Bids on my properties.</Text>
             </View>

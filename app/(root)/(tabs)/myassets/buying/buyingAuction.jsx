@@ -137,7 +137,14 @@ const BuyingAuction = () => {
     }
     return num.toLocaleString('en-IN', { maximumFractionDigits: 0 });
   };
-
+  const formatDateDDMMYY = (dateString) => {
+    if (!dateString) return null;
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  };
   const getLatestBid = (bids) => {
     if (Array.isArray(bids) && bids.length > 0) {
       return bids.reduce((latest, current) =>
@@ -181,7 +188,7 @@ const BuyingAuction = () => {
           <View>
             <Text style={styles.cardLabel}>{t('bidDate') || 'Date'}:</Text>
             <Text style={[styles.cardDate, { fontFamily: fontFamilyRegular }]}>
-              {new Date(latestBid.date || item.created_at).toLocaleDateString()}
+              {formatDateDDMMYY(latestBid?.date || item?.created_at) || t('notAvailable')}
             </Text>
           </View>
         </View>

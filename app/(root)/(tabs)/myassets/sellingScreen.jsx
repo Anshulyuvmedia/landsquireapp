@@ -9,14 +9,14 @@ import MySellingEnquiries from './selling/mySellingEnquiries';
 // Define the SceneMap with the routes
 const renderScene = SceneMap({
     Myproperties: MySellingProperties,
-    Auction: MySellingAuction,
+    // Auction: MySellingAuction,
     Enquiry: MySellingEnquiries,
 });
 
 // Define the routes array
 const routes = [
     { key: 'Myproperties', title: 'Properties' },
-    { key: 'Auction', title: 'Auction' },
+    // { key: 'Auction', title: 'Auction' },
     { key: 'Enquiry', title: 'Enquiry' },
 ];
 

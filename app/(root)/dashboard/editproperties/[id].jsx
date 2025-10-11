@@ -11,7 +11,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView, { Marker } from "react-native-maps";
 import Constants from "expo-constants";
 import 'react-native-get-random-values';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';

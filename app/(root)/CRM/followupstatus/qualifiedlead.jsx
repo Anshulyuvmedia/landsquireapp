@@ -8,6 +8,16 @@ const QualifiedLead = ({ enquiries }) => {
     const { t, i18n } = useTranslation();
     const router = useRouter();
 
+    const formatDateDDMMYY = (dateString) => {
+        if (!dateString) return null;
+        const d = new Date(dateString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = String(d.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
+    };
+
+
     const renderEnquiry = ({ item }) => {
         return (
             <TouchableOpacity
@@ -31,7 +41,7 @@ const QualifiedLead = ({ enquiries }) => {
                             styles.cardDate,
                             { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }
                         ]}>
-                            {item?.created_at ? new Date(item.created_at).toLocaleDateString() : t('notAvailable')}
+                            {item?.created_at ? formatDateDDMMYY(item.created_at) : t('notAvailable')}
                         </Text>
                     </View>
                     <View>
