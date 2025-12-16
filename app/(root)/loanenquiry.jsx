@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TextInput, Alert, FlatList, TouchableOpacity, Image, Platform, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Alert, FlatList, TouchableOpacity, Image, Platform, ScrollView, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy'; // Use legacy API
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -257,170 +257,181 @@ const LoanEnquiry = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.headerContainer}>
-                    <Text style={styles.headerTitle}>Property Loan Enquiry</Text>
-                    <TouchableOpacity
-                        onPress={handleBack}
-                        style={styles.backButton}
-                        activeOpacity={0.7}
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View style={styles.container}>
+                    <ScrollView
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                     >
-                        <MaterialIcons name="arrow-back" size={24} color="#000" />
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.headerSubtitle}>Apply for the best bank loan offers</Text>
-
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Finance That Feels Right</Text>
-                    <Text style={styles.cardHeadline}>Your Loan, Your Terms</Text>
-                    <Text style={styles.cardDescription}>
-                        Whether you're buying your first home, investing in property, or renovating your dream space, we connect you with trusted banks offering tailored loan options.
-                    </Text>
-                    <View style={styles.bankLogos}>
-                        <Image source={images.axisbank} style={styles.bankLogo} />
-                        <Image source={images.icicibank} style={styles.bankLogo} />
-                        <Image source={images.hdbbank} style={styles.bankLogo} />
-                    </View>
-                    <Text style={styles.cardSubTitle}>Why Choose Us?</Text>
-                    <View style={styles.benefitsList}>
-                        <View style={styles.benefitItem}>
-                            <Text style={styles.bullet}>•</Text>
-                            <Text style={styles.benefitText}>Balance transfer and top-up loan facility</Text>
+                        <View style={styles.headerContainer}>
+                            <Text style={styles.headerTitle}>Property Loan Enquiry</Text>
+                            <TouchableOpacity
+                                onPress={handleBack}
+                                style={styles.backButton}
+                                activeOpacity={0.7}
+                            >
+                                <MaterialIcons name="arrow-back" size={24} color="#000" />
+                            </TouchableOpacity>
                         </View>
-                        <View style={styles.benefitItem}>
-                            <Text style={styles.bullet}>•</Text>
-                            <Text style={styles.benefitText}>Quick online approval with minimal documentation</Text>
-                        </View>
-                        <View style={styles.benefitItem}>
-                            <Text style={styles.bullet}>•</Text>
-                            <Text style={styles.benefitText}>Personalized support from loan experts</Text>
-                        </View>
-                    </View>
-                </View>
+                        <Text style={styles.headerSubtitle}>Apply for the best bank loan offers</Text>
 
-                <View className="flex-row justify-between bg-blue-600 p-3 rounded-2xl mb-3">
-                    <Text className="text-white fw-bold">{params.propertyname}</Text>
-                    <Text className="text-white fw-bold">Price: {formatINR(params.price)}</Text>
-                </View>
-                <View style={styles.formContainer}>
-                    <View style={styles.inputGroup}>
 
-                        <Text style={styles.label}>Loan Amount Required (INR)</Text>
-                        <View style={styles.inputWrapper}>
-                            <FontAwesome6 name="money-bill-1" size={20} color="#0052CC" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter loan amount"
-                                value={loanAmount}
-                                onChangeText={handleLoanAmountChange}
-                                keyboardType="numeric"
-                                placeholderTextColor="#A0AEC0"
-                            />
+
+                        <View className="flex-row justify-between bg-blue-600 p-3 rounded-2xl mb-3">
+                            <Text className="text-white fw-bold">{params.propertyname}</Text>
+                            <Text className="text-white fw-bold">Price: {formatINR(params.price)}</Text>
                         </View>
-                    </View>
+                        <View style={styles.formContainer}>
+                            <View style={styles.inputGroup}>
 
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Upload Documents (Aadhar, PAN, Income Proof)</Text>
-                        <FlatList
-                            data={propertyDocuments}
-                            horizontal
-                            keyExtractor={(_, index) => `property-${index}`}
-                            contentContainerStyle={styles.documentList}
-                            renderItem={({ item, index }) => (
-                                <View style={styles.documentCard}>
-                                    <FontAwesome6
-                                        name={item.mimeType.startsWith('image/') ? 'file-image' : 'file-pdf'}
-                                        size={50}
-                                        color="black"
-                                        style={styles.documentThumbnail}
+                                <Text style={styles.label}>Loan Amount Required (INR)</Text>
+                                <View style={styles.inputWrapper}>
+                                    <FontAwesome6 name="money-bill-1" size={20} color="#0052CC" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Enter loan amount"
+                                        value={loanAmount}
+                                        onChangeText={handleLoanAmountChange}
+                                        keyboardType="numeric"
+                                        placeholderTextColor="#A0AEC0"
                                     />
-                                    <Text style={styles.documentName} numberOfLines={1}>{item.name}</Text>
-                                    <TouchableOpacity
-                                        onPress={() => removeDocument(index)}
-                                        style={styles.deleteButton}
-                                    >
-                                        <MaterialIcons name="close" size={16} color="#FFFFFF" />
-                                    </TouchableOpacity>
                                 </View>
-                            )}
-                        />
-                        <TouchableOpacity onPress={pickDocument} style={styles.uploadButton}>
-                            <FontAwesome name="upload" size={20} color="#0052CC" />
-                            <Text style={styles.uploadText}>Upload Documents</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                            </View>
 
-                <TouchableOpacity
-                    onPress={handleSubmit}
-                    style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-                    disabled={isSubmitting}
-                >
-                    <Text style={styles.submitButtonText}>{isSubmitting ? 'Submitting...' : 'Apply Now'}</Text>
-                </TouchableOpacity>
-            </ScrollView>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Upload Documents (Aadhar, PAN, Income Proof)</Text>
+                                <FlatList
+                                    data={propertyDocuments}
+                                    horizontal
+                                    keyExtractor={(_, index) => `property-${index}`}
+                                    contentContainerStyle={styles.documentList}
+                                    renderItem={({ item, index }) => (
+                                        <View style={styles.documentCard}>
+                                            <FontAwesome6
+                                                name={item.mimeType.startsWith('image/') ? 'file-image' : 'file-pdf'}
+                                                size={50}
+                                                color="black"
+                                                style={styles.documentThumbnail}
+                                            />
+                                            <Text style={styles.documentName} numberOfLines={1}>{item.name}</Text>
+                                            <TouchableOpacity
+                                                onPress={() => removeDocument(index)}
+                                                style={styles.deleteButton}
+                                            >
+                                                <MaterialIcons name="close" size={16} color="#FFFFFF" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                />
+                                <TouchableOpacity onPress={pickDocument} style={styles.uploadButton}>
+                                    <FontAwesome name="upload" size={20} color="#0052CC" />
+                                    <Text style={styles.uploadText}>Upload Documents</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
 
-            <RBSheet
-                ref={successSheetRef}
-                closeOnDragDown
-                closeOnPressMask
-                height={320}
-                animationType="slide"
-                customStyles={{ container: styles.sheetContainer }}
-            >
-                <View style={[styles.sheetContent, { marginBottom: insets.bottom }]}>
-                    <MaterialIcons name="check-circle" size={48} color="#10B981" style={styles.sheetIcon} />
-                    <Text style={styles.sheetTitle}>Application Submitted!</Text>
-                    <Text style={styles.sheetText}>
-                        Your loan enquiry has been successfully submitted. We'll get back to you soon.
-                    </Text>
-                    <View style={styles.sheetButtonContainer}>
                         <TouchableOpacity
-                            onPress={closeSuccessSheet}
-                            style={[styles.sheetButton, styles.sheetPrimaryButton]}
+                            onPress={handleSubmit}
+                            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+                            disabled={isSubmitting}
                         >
-                            <Text style={styles.sheetButtonText}>Finish</Text>
+                            <Text style={styles.submitButtonText}>{isSubmitting ? 'Submitting...' : 'Apply Now'}</Text>
                         </TouchableOpacity>
-                    </View>
-                </View>
-            </RBSheet>
 
-            <RBSheet
-                ref={errorSheetRef}
-                closeOnDragDown
-                closeOnPressMask
-                height={320}
-                animationType="slide"
-                customStyles={{ container: styles.sheetContainer }}
-            >
-                <View style={styles.sheetContent}>
-                    <MaterialIcons name="error" size={48} color="#EF4444" style={styles.sheetIcon} />
-                    <Text style={styles.sheetTitle}>Submission Failed</Text>
-                    <Text style={styles.sheetText}>
-                        An error occurred. Please check your input and try again.
-                    </Text>
-                    <View style={[styles.sheetButtonContainer, { marginBottom: insets.bottom }]}>
-                        <TouchableOpacity
-                            onPress={closeErrorSheet}
-                            style={[styles.sheetButton, styles.sheetPrimaryButton]}
-                        >
-                            <Text style={styles.sheetButtonText}>Retry</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={closeErrorSheet}
-                            style={[styles.sheetButton, styles.sheetSecondaryButton]}
-                        >
-                            <Text style={styles.sheetButtonClose}>Close</Text>
-                        </TouchableOpacity>
-                    </View>
+                        <View style={styles.card}>
+                            <Text style={styles.cardTitle}>Finance That Feels Right</Text>
+                            <Text style={styles.cardHeadline}>Your Loan, Your Terms</Text>
+                            <Text style={styles.cardDescription}>
+                                Whether you're buying your first home, investing in property, or renovating your dream space, we connect you with trusted banks offering tailored loan options.
+                            </Text>
+                            <View style={styles.bankLogos}>
+                                <Image source={images.axisbank} style={styles.bankLogo} />
+                                <Image source={images.icicibank} style={styles.bankLogo} />
+                                <Image source={images.hdbbank} style={styles.bankLogo} />
+                            </View>
+                            <Text style={styles.cardSubTitle}>Why Choose Us?</Text>
+                            <View style={styles.benefitsList}>
+                                <View style={styles.benefitItem}>
+                                    <Text style={styles.bullet}>•</Text>
+                                    <Text style={styles.benefitText}>Balance transfer and top-up loan facility</Text>
+                                </View>
+                                <View style={styles.benefitItem}>
+                                    <Text style={styles.bullet}>•</Text>
+                                    <Text style={styles.benefitText}>Quick online approval with minimal documentation</Text>
+                                </View>
+                                <View style={styles.benefitItem}>
+                                    <Text style={styles.bullet}>•</Text>
+                                    <Text style={styles.benefitText}>Personalized support from loan experts</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </ScrollView>
+
+                    <RBSheet
+                        ref={successSheetRef}
+                        closeOnDragDown
+                        closeOnPressMask
+                        height={320}
+                        animationType="slide"
+                        customStyles={{ container: styles.sheetContainer }}
+                    >
+                        <View style={[styles.sheetContent, { marginBottom: insets.bottom }]}>
+                            <MaterialIcons name="check-circle" size={48} color="#10B981" style={styles.sheetIcon} />
+                            <Text style={styles.sheetTitle}>Application Submitted!</Text>
+                            <Text style={styles.sheetText}>
+                                Your loan enquiry has been successfully submitted. We'll get back to you soon.
+                            </Text>
+                            <View style={styles.sheetButtonContainer}>
+                                <TouchableOpacity
+                                    onPress={closeSuccessSheet}
+                                    style={[styles.sheetButton, styles.sheetPrimaryButton]}
+                                >
+                                    <Text style={styles.sheetButtonText}>Finish</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </RBSheet>
+
+                    <RBSheet
+                        ref={errorSheetRef}
+                        closeOnDragDown
+                        closeOnPressMask
+                        height={320}
+                        animationType="slide"
+                        customStyles={{ container: styles.sheetContainer }}
+                    >
+                        <View style={styles.sheetContent}>
+                            <MaterialIcons name="error" size={48} color="#EF4444" style={styles.sheetIcon} />
+                            <Text style={styles.sheetTitle}>Submission Failed</Text>
+                            <Text style={styles.sheetText}>
+                                An error occurred. Please check your input and try again.
+                            </Text>
+                            <View style={[styles.sheetButtonContainer, { marginBottom: insets.bottom }]}>
+                                <TouchableOpacity
+                                    onPress={closeErrorSheet}
+                                    style={[styles.sheetButton, styles.sheetPrimaryButton]}
+                                >
+                                    <Text style={styles.sheetButtonText}>Retry</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={closeErrorSheet}
+                                    style={[styles.sheetButton, styles.sheetSecondaryButton]}
+                                >
+                                    <Text style={styles.sheetButtonClose}>Close</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </RBSheet>
                 </View>
-            </RBSheet>
-        </View>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -487,7 +498,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
         padding: 16,
-        marginBottom: 16,
+        marginTop: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,

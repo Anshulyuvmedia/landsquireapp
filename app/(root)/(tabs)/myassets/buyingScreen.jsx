@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#f4f2f7',
         borderRadius: moderateScale(5),
-        // marginHorizontal: scale(5),
-        marginVertical: verticalScale(5),
+        paddingVertical: scale(5),
+        // marginVertical: verticalScale(5),
     },
     tabItem: {
         alignItems: 'center',

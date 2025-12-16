@@ -17,6 +17,7 @@ import images from "@/constants/images";
 import { getUUIDSync } from '@/utils/uuid';
 import BottomBar from "../../../components/PropertyDetails/BottomBar";
 import FeedbackSheet from "../../../components/PropertyDetails/FeedbackSheet";
+import PropertyDetailsSection from "../../../components/PropertyDetails/PropertyDetailsSection";
 
 const ProjectDetails = () => {
     const projectId = useLocalSearchParams().id;
@@ -57,7 +58,7 @@ const ProjectDetails = () => {
             const userData = await AsyncStorage.getItem("userData");
             const parsedUserData = userData ? JSON.parse(userData) : null;
             setLoggedinUserId(parsedUserData?.id || null);
-            console.log('Logged-in User ID:', parsedUserData?.id);
+            // console.log('Logged-in User ID:', parsedUserData?.id);
         } catch (error) {
             console.error('Error fetching user data:', error);
             setLoggedinUserId(null);
@@ -424,6 +425,9 @@ const ProjectDetails = () => {
                     }}
                     loggedinUserId={loggedinUserId}
                 />
+                <View className="mt-2 px-5">
+                    <Text className="text-2xl font-rubik-medium capitalize">{projectData.projecttitle}</Text>
+                </View>
                 <PropertyDescription description={projectData.discription} />
                 <PropertyGallery
                     propertyGallery={projectGallery}

@@ -36,7 +36,11 @@ const Home = () => {
     const [projectsData, setProjectsData] = useState([]);
 
     const handleCardPress = (id) => router.push(`/properties/${id}`);
-    const handleProjectPress = (id) => router.push(`/projects/${id}`);
+    const handleProjectPress = (id) => {
+        console.log('Project ID:', id);
+        router.push(`/projects/${id}`);
+    };
+
 
     const fetchUserData = async () => {
         setLoading(true);

@@ -295,6 +295,22 @@ const MySellingProperties = () => {
               <Text style={[styles.noDataMessage, { fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Regular' : 'Rubik-Regular' }]}>
                 {t('noPropertiesMessage')}
               </Text>
+              <TouchableOpacity
+                style={{
+                  marginTop: 10,
+                  alignSelf: 'center',
+                  backgroundColor: '#234F68',
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                }}
+                onPress={onRefresh}
+                disabled={loading}
+              >
+                <Text style={{ color: '#fff', fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }}>
+                  Refresh
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <FlatList

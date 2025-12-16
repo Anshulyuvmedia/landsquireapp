@@ -126,6 +126,7 @@ const Mapview = () => {
     const isInitialFetch = useRef(true); // Track initial fetch to prevent redundant calls
 
     const viewItem = useCallback((item) => {
+        console.log('item', item.id);
         const route = item.type === 'project' ? `/projects/${item.id}` : `/properties/${item.id}`;
         router.push(route);
     }, [router]);
@@ -572,9 +573,8 @@ const Mapview = () => {
                 500
             );
 
-            if (item.type === 'property') {
-                propertySheetRef.current?.open();
-            }
+            propertySheetRef.current?.open();
+
         },
         []
     );
@@ -740,7 +740,7 @@ const Mapview = () => {
                                     onPress={() => handleMarkerPress(item)}
                                     tracksViewChanges={false}
                                     pinColor='green'
-                                    // opacity={0} // Hide default marker
+                                // opacity={0} // Hide default marker
                                 >
                                     {/* <View style={styles.markerContainer}>
                                         <Text style={styles.markerText}>{item.projecttitle || 'Project'}</Text>
@@ -1003,8 +1003,7 @@ const Mapview = () => {
                             description: selectedItem.description || selectedItem.discription,
                         }}
                         map={'true'}
-                        onPress={() => propertySheetRef.current?.close()}
-                        onView={() => viewItem(selectedItem)}
+                        onPress={() => viewItem(selectedItem)}
                     />
                 )}
             </RBSheet>

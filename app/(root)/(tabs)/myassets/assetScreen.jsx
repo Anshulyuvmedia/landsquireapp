@@ -89,6 +89,7 @@ const AssetScreen = () => {
                     renderScene={renderScene}
                     onIndexChange={setIndex}
                     initialLayout={{ width: layout.width }}
+                    swipeEnabled={false}
                     renderTabBar={(props) => <CustomTabBar {...props} layout={layout} />}
                 />
             </View>
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: scale(10),
-        marginVertical: verticalScale(5),
+        marginBottom: verticalScale(5),
     },
     backButton: {
         backgroundColor: '#f4f2f7',

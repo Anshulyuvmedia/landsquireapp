@@ -28,7 +28,7 @@ const BrokerCard = ({ brokerData, handleCall, openWhatsApp, getProfileImageUri }
                 <Image
                     source={
                         typeof brokerData?.profile === "string"
-                            ? { uri: brokerData?.profile }
+                            ? { uri: `https://landsquire.in/adminAssets/images/Users/${brokerData?.profile}` }
                             : images.avatar
                     }
                     className="w-14 h-14 rounded-full"

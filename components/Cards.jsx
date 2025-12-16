@@ -96,7 +96,7 @@ const Card = ({ item, onPress }) => {
 
 export { Card };
 
-const HorizontalCard = ({ item, onPress, onView, map }) => {
+const HorizontalCard = ({ item, onPress, map }) => {
   // console.log('item:', item);
   // Helper to format price in Indian Rupees
   const formatINR = (amount) => {
@@ -258,7 +258,7 @@ const MapCard = ({ item, onPress, onView, map }) => {
 
   return (
     <TouchableOpacity
-      onPress={onView}
+      onPress={onPress}
       className="w-100 h-[130px] rounded-[30px] bg-[#f5f4f8] flex-row overflow-hidden"
     >
       {/* Image Section */}
@@ -301,16 +301,6 @@ const MapCard = ({ item, onPress, onView, map }) => {
             {price && formatINR(price)}
           </Text>
 
-          {map && (
-            <TouchableOpacity
-              onPress={onView}
-              className="py-1 px-2 bg-primary-400 rounded-lg items-center"
-            >
-              <Text className="text-white">
-                <Ionicons name="eye-outline" size={20} color="white" className="" /> View
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     </TouchableOpacity>

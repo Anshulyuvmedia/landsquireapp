@@ -10,6 +10,7 @@ import {
   TextInput,
   ImageBackground,
   Alert,
+  KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -242,113 +243,121 @@ const Signin = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
 
-        <ImageBackground
-          source={images.loginbanner}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
-
-        <View style={styles.formContainer}>
-          <Image
-            source={images.applogo}
-            style={styles.applogo}
-            resizeMode="cover"
-          />
-          <Text style={styles.title}>
-            Let's <Text style={styles.highlight}>Sign In</Text>
-          </Text>
-
-          <Text style={styles.subtitle}>Get You Closer To Your Dream Home</Text>
-
-          {error && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="call-outline" size={moderateScale(20)} color="black" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor="#555"
-              placeholder="Mobile Number"
-              keyboardType="phone-pad"
-              maxLength={10}
-              value={mobileNumber}
-              onChangeText={setMobileNumber}
+            <ImageBackground
+              source={images.loginbanner}
+              style={styles.backgroundImage}
+              resizeMode="cover"
             />
-          </View>
 
-          <TouchableOpacity onPress={generateOtp} style={styles.loginButton} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#FFF" style={styles.loginButtonText} />
-            ) : (
-              <Text style={styles.loginButtonText}>Get OTP</Text>
-            )}
-          </TouchableOpacity>
+            <View style={styles.formContainer}>
+              <Image
+                source={images.applogo}
+                style={styles.applogo}
+                resizeMode="cover"
+              />
+              <Text style={styles.title}>
+                Let's <Text style={styles.highlight}>Sign In</Text>
+              </Text>
 
-          <RBSheet
-            ref={otpSheetRef}
-            closeOnDragDown={true}
-            closeOnPressMask={true}
-            height={verticalScale(400)}
-            customStyles={{
-              container: styles.bottomSheetContainer,
-            }}
-          >
-            <View style={styles.otpSheetContent}>
-              <Text style={styles.otpSheetHeader}>Verify Your OTP</Text>
-              <Text style={styles.otpSheetSubtext}>Enter the 6-digit code sent to +91 {mobileNumber}</Text>
-              {/* <Text style={styles.otpSheetSubtext}>Enter OTP: {otpShow}</Text> */}
-              <View style={styles.otpInputContainer}>
-                {otp.map((digit, index) => (
-                  <TextInput
-                    key={index}
-                    ref={otpRefs.current[index]}
-                    style={styles.otpInput}
-                    keyboardType="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChangeText={(text) => handleOtpChange(text, index)}
-                    autoFocus={index === 0}
-                  />
-                ))}
-              </View>
+              <Text style={styles.subtitle}>Get You Closer To Your Dream Home</Text>
+
               {error && (
-                <Text style={styles.otpErrorText}>{error}</Text>
+                <Text style={styles.errorText}>{error}</Text>
               )}
-              <TouchableOpacity onPress={verifyOtpAndLogin} style={styles.verifyButton} disabled={loading}>
+
+              <View style={styles.inputContainer}>
+                <Ionicons name="call-outline" size={moderateScale(20)} color="black" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor="#555"
+                  placeholder="Mobile Number"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  value={mobileNumber}
+                  onChangeText={setMobileNumber}
+                />
+              </View>
+
+              <TouchableOpacity onPress={generateOtp} style={styles.loginButton} disabled={loading}>
                 {loading ? (
-                  <ActivityIndicator size="small" color="#FFF" />
+                  <ActivityIndicator size="small" color="#FFF" style={styles.loginButtonText} />
                 ) : (
-                  <Text style={styles.verifyButtonText}>Verify OTP</Text>
+                  <Text style={styles.loginButtonText}>Get OTP</Text>
                 )}
               </TouchableOpacity>
-              <View style={styles.resendContainer}>
-                {resendCountdown > 0 ? (
-                  <Text style={styles.resendText}>Resend in {resendCountdown}s</Text>
-                ) : (
-                  <TouchableOpacity
-                    onPress={resendOtp}
-                    style={[styles.resendButton, isResendDisabled && styles.resendButtonDisabled]}
-                    disabled={isResendDisabled || loading}
-                  >
-                    <Text style={styles.resendButtonText}>Resend OTP</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          </RBSheet>
-        </View>
 
-        <Link href="./signup" style={styles.registerLink}>
-          <Text style={styles.registerText}>
-            Don't have an account? <Text style={styles.highlight}>Register</Text>
-          </Text>
-        </Link>
-      </ScrollView>
-    </View>
+              <RBSheet
+                ref={otpSheetRef}
+                closeOnDragDown={true}
+                closeOnPressMask={true}
+                height={200}
+                customStyles={{
+                  container: styles.bottomSheetContainer,
+                }}
+              >
+                <View style={styles.otpSheetContent}>
+                  <Text style={styles.otpSheetHeader}>Verify Your OTP</Text>
+                  <Text style={styles.otpSheetSubtext}>Enter the 6-digit code sent to +91 {mobileNumber}</Text>
+                  {/* <Text style={styles.otpSheetSubtext}>Enter OTP: {otpShow}</Text> */}
+                  <View style={styles.otpInputContainer}>
+                    {otp.map((digit, index) => (
+                      <TextInput
+                        key={index}
+                        ref={otpRefs.current[index]}
+                        style={styles.otpInput}
+                        keyboardType="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChangeText={(text) => handleOtpChange(text, index)}
+                        autoFocus={index === 0}
+                      />
+                    ))}
+                  </View>
+                  {error && (
+                    <Text style={styles.otpErrorText}>{error}</Text>
+                  )}
+                  <TouchableOpacity onPress={verifyOtpAndLogin} style={styles.verifyButton} disabled={loading}>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <Text style={styles.verifyButtonText}>Verify OTP</Text>
+                    )}
+                  </TouchableOpacity>
+                  <View style={styles.resendContainer}>
+                    {resendCountdown > 0 ? (
+                      <Text style={styles.resendText}>Resend in {resendCountdown}s</Text>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={resendOtp}
+                        style={[styles.resendButton, isResendDisabled && styles.resendButtonDisabled]}
+                        disabled={isResendDisabled || loading}
+                      >
+                        <Text style={styles.resendButtonText}>Resend OTP</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </RBSheet>
+            </View>
+
+            <Link href="./signup" style={styles.registerLink}>
+              <Text style={styles.registerText}>
+                Don't have an account? <Text style={styles.highlight}>Register</Text>
+              </Text>
+            </Link>
+          </ScrollView>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

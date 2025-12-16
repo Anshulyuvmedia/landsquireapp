@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, Image, TextInput, TouchableOpacity, ScrollView, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, Image, TextInput, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { Link } from 'expo-router';
@@ -12,7 +12,7 @@ import { useNavigation } from 'expo-router';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [mobile, setMobile] = useState('');
   const [city, setCity] = useState('');
@@ -21,7 +21,7 @@ const SignUp = () => {
   const [bankName, setBankName] = useState('');
   const [companyDocument, setCompanyDocument] = useState(null);
   const [userType, setUserType] = useState('user');
-  const [showPassword, setShowPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState({ type: '', title: '', text: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -138,7 +138,7 @@ const SignUp = () => {
   const handleRegister = async () => {
     if (
       email &&
-      password &&
+      // password &&
       username &&
       mobile &&
       city &&
@@ -153,7 +153,7 @@ const SignUp = () => {
       formData.append('city', city);
       formData.append('state', state);
       formData.append('email', email);
-      formData.append('password', password);
+      // formData.append('password', password);
 
       if (userType === 'broker' && companyName && companyDocument) {
         formData.append('company_name', companyName);
@@ -182,7 +182,7 @@ const SignUp = () => {
           setCity('');
           setState('');
           setEmail('');
-          setPassword('');
+          // setPassword('');
           setCompanyName('');
           setBankName('');
           setCompanyDocument(null);
@@ -205,223 +205,232 @@ const SignUp = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Image source={images.applogo} style={styles.applogo} resizeMode="cover" />
-        <View>
-          <Text style={styles.title}>Create your account</Text>
-          <Text style={styles.subtitle}>Join Us and Explore New Opportunities</Text>
-        </View>
-      </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            <Image source={images.applogo} style={styles.applogo} resizeMode="cover" />
+            <View>
+              <Text style={styles.title}>Create your account</Text>
+              <Text style={styles.subtitle}>Join Us and Explore New Opportunities</Text>
+            </View>
+          </View>
 
-      <View style={styles.toggleContainer}>
-        <TouchableOpacity onPress={() => setUserType('user')}>
-          <View style={[styles.toggleButton, userType === 'user' ? styles.toggleButtonActive : {}]}>
-            <Text style={[styles.toggleText, userType === 'user' ? styles.toggleTextActive : {}]}>User</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setUserType('broker')}>
-          <View style={[styles.toggleButton, userType === 'broker' ? styles.toggleButtonActive : {}]}>
-            <Text style={[styles.toggleText, userType === 'broker' ? styles.toggleTextActive : {}]}>Broker</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setUserType('bankagent')}>
-          <View style={[styles.toggleButton, userType === 'bankagent' ? styles.toggleButtonActive : {}]}>
-            <Text style={[styles.toggleText, userType === 'bankagent' ? styles.toggleTextActive : {}]}>Bank Agent</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-      >
-        <View style={styles.formContainer}>
-          {userType === 'broker' && (
-            <>
-              <View style={styles.inputContainer}>
-                <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                <TextInput
-                  style={[styles.input, { paddingLeft: 10 }]}
-                  placeholderTextColor="#555"
-                  placeholder="Company Name"
-                  value={companyName}
-                  onChangeText={setCompanyName}
-                />
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity onPress={() => setUserType('user')}>
+              <View style={[styles.toggleButton, userType === 'user' ? styles.toggleButtonActive : {}]}>
+                <Text style={[styles.toggleText, userType === 'user' ? styles.toggleTextActive : {}]}>User</Text>
               </View>
-              <View style={styles.inputContainer}>
-                <Ionicons name="document-text-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                <Text style={[styles.input, { paddingTop: 13, color: '#555' }]}>
-                  {companyDocument ? companyDocument.name : 'Company Document'}
-                </Text>
-                <TouchableOpacity onPress={pickDocument} style={styles.uploadButton}>
-                  <Text style={styles.uploadText}>Upload</Text>
-                </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setUserType('broker')}>
+              <View style={[styles.toggleButton, userType === 'broker' ? styles.toggleButtonActive : {}]}>
+                <Text style={[styles.toggleText, userType === 'broker' ? styles.toggleTextActive : {}]}>Broker</Text>
               </View>
-            </>
-          )}
-
-          {userType === 'bankagent' && (
-            <View style={styles.inputContainer}>
-              <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { paddingLeft: 10 }]}
-                placeholderTextColor="#555"
-                placeholder="Bank Name"
-                value={bankName}
-                onChangeText={setBankName}
-              />
-            </View>
-          )}
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor="#555"
-              placeholder="Your Full name"
-              value={username}
-              onChangeText={setUsername}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Octicons name="device-mobile" size={20} color="#1F4C6B" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor="#555"
-              placeholder="Mobile No."
-              keyboardType="number-pad"
-              value={mobile}
-              onChangeText={setMobile}
-            />
-          </View>
-
-          <View style={styles.rowContainer}>
-            <View style={[styles.inputContainer, styles.inputContainerHalf]}>
-              <Ionicons name="location-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholderTextColor="#555"
-                placeholder="Search City"
-                value={searchTerm}
-                onChangeText={handleSearch}
-              />
-            </View>
-            <View style={[styles.inputContainer, styles.inputContainerHalf]}>
-              <Ionicons name="map-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholderTextColor="#555"
-                placeholder="State"
-                value={state}
-                editable={false}
-              />
-            </View>
-          </View>
-
-          {suggestions.length > 0 && (
-            <FlatList
-              data={suggestions}
-              keyExtractor={(item) => item.place_id}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSelect(item.place_id)}>
-                  <Text style={styles.suggestionText}>{item.description}</Text>
-                </TouchableOpacity>
-              )}
-              style={styles.suggestionsList}
-            />
-          )}
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor="#555"
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor="#555"
-              placeholder="Create Password"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Text style={styles.showPassword}>{showPassword ? 'Hide password' : 'Show password'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setUserType('bankagent')}>
+              <View style={[styles.toggleButton, userType === 'bankagent' ? styles.toggleButtonActive : {}]}>
+                <Text style={[styles.toggleText, userType === 'bankagent' ? styles.toggleTextActive : {}]}>Bank Agent</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity 
-            onPress={handleRegister} 
-            style={[styles.registerButton, isLoading && styles.disabledButton]}
-            disabled={isLoading}
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.registerButtonText}>Register</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <View style={styles.formContainer}>
+              {userType === 'broker' && (
+                <>
+                  <View style={styles.inputContainer}>
+                    <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                    <TextInput
+                      style={[styles.input, { paddingLeft: 10 }]}
+                      placeholderTextColor="#555"
+                      placeholder="Company Name"
+                      value={companyName}
+                      onChangeText={setCompanyName}
+                    />
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Ionicons name="document-text-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                    <Text style={[styles.input, { paddingTop: 13, color: '#555' }]}>
+                      {companyDocument ? companyDocument.name : 'Company Document'}
+                    </Text>
+                    <TouchableOpacity onPress={pickDocument} style={styles.uploadButton}>
+                      <Text style={styles.uploadText}>Upload</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
 
-      <Link href="/signin" style={styles.loginLink}>
-        <Text style={styles.loginText}>
-          Already have an account? <Text style={styles.loginHighlight}>Login now!</Text>
-        </Text>
-      </Link>
+              {userType === 'bankagent' && (
+                <View style={styles.inputContainer}>
+                  <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { paddingLeft: 10 }]}
+                    placeholderTextColor="#555"
+                    placeholder="Bank Name"
+                    value={bankName}
+                    onChangeText={setBankName}
+                  />
+                </View>
+              )}
 
-      <RBSheet
-        ref={rbSheetRef}
-        closeOnDragDown={true}
-        closeOnPressMask={true}
-        height={verticalScale(200)}
-        openDuration={250}
-        customStyles={{
-          container: {
-            borderTopLeftRadius: moderateScale(20),
-            borderTopRightRadius: moderateScale(20),
-            backgroundColor: '#fff',
-            padding: moderateScale(20),
-            alignItems: 'center',
-            justifyContent: 'center',
-          },
-          draggableIcon: {
-            backgroundColor: '#ccc',
-            width: scale(60),
-            height: verticalScale(5),
-          },
-        }}
-      >
-        <View style={styles.sheetContainer}>
-          <Ionicons
-            name={message.type === 'success' ? 'checkmark-circle' : 'alert-circle'}
-            size={scale(40)}
-            color={message.type === 'success' ? '#8BC83F' : '#FF4C4C'}
-            style={{ marginBottom: verticalScale(10) }}
-          />
-          <Text style={styles.sheetTitle}>{message.title}</Text>
-          <Text style={styles.sheetText}>{message.text}</Text>
-          <TouchableOpacity style={styles.sheetButton} onPress={() => rbSheetRef.current?.close()}>
-            <Text style={styles.sheetButtonText}>OK</Text>
-          </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor="#555"
+                  placeholder="Your Full name"
+                  value={username}
+                  onChangeText={setUsername}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Octicons name="device-mobile" size={20} color="#1F4C6B" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor="#555"
+                  placeholder="Mobile No."
+                  keyboardType="number-pad"
+                  value={mobile}
+                  onChangeText={setMobile}
+                />
+              </View>
+
+              <View style={styles.rowContainer}>
+                <View style={[styles.inputContainer, styles.inputContainerHalf]}>
+                  <Ionicons name="location-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholderTextColor="#555"
+                    placeholder="Search City"
+                    value={searchTerm}
+                    onChangeText={handleSearch}
+                  />
+                </View>
+                <View style={[styles.inputContainer, styles.inputContainerHalf]}>
+                  <Ionicons name="map-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholderTextColor="#555"
+                    placeholder="State"
+                    value={state}
+                    editable={false}
+                  />
+                </View>
+              </View>
+
+              {suggestions.length > 0 && (
+                <FlatList
+                  data={suggestions}
+                  keyExtractor={(item) => item.place_id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSelect(item.place_id)}>
+                      <Text style={styles.suggestionText}>{item.description}</Text>
+                    </TouchableOpacity>
+                  )}
+                  style={styles.suggestionsList}
+                />
+              )}
+
+              <View style={styles.inputContainer}>
+                <Ionicons name="mail-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor="#555"
+                  placeholder="Email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+
+              {/* <View style={styles.inputContainer}>
+                <Ionicons name="lock-closed-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor="#555"
+                  placeholder="Create Password"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+              </View> */}
+
+              {/* <View style={styles.optionsContainer}>
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Text style={styles.showPassword}>{showPassword ? 'Hide password' : 'Show password'}</Text>
+                </TouchableOpacity>
+              </View> */}
+
+              <TouchableOpacity
+                onPress={handleRegister}
+                style={[styles.registerButton, isLoading && styles.disabledButton]}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.registerButtonText}>Register</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+
+          <Link href="/signin" style={styles.loginLink}>
+            <Text style={styles.loginText}>
+              Already have an account? <Text style={styles.loginHighlight}>Login now!</Text>
+            </Text>
+          </Link>
+
+          <RBSheet
+            ref={rbSheetRef}
+            closeOnDragDown={true}
+            closeOnPressMask={true}
+            height={verticalScale(200)}
+            openDuration={250}
+            customStyles={{
+              container: {
+                borderTopLeftRadius: moderateScale(20),
+                borderTopRightRadius: moderateScale(20),
+                backgroundColor: '#fff',
+                padding: moderateScale(20),
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+              draggableIcon: {
+                backgroundColor: '#ccc',
+                width: scale(60),
+                height: verticalScale(5),
+              },
+            }}
+          >
+            <View style={styles.sheetContainer}>
+              <Ionicons
+                name={message.type === 'success' ? 'checkmark-circle' : 'alert-circle'}
+                size={scale(40)}
+                color={message.type === 'success' ? '#8BC83F' : '#FF4C4C'}
+                style={{ marginBottom: verticalScale(10) }}
+              />
+              <Text style={styles.sheetTitle}>{message.title}</Text>
+              <Text style={styles.sheetText}>{message.text}</Text>
+              <TouchableOpacity style={styles.sheetButton} onPress={() => rbSheetRef.current?.close()}>
+                <Text style={styles.sheetButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </RBSheet>
         </View>
-      </RBSheet>
-    </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+
   );
 };
 

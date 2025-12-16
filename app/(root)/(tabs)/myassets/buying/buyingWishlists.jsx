@@ -104,8 +104,8 @@ const BuyingWishlists = () => {
                         item.thumbnail && typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http')
                             ? item.thumbnail
                             : item.thumbnail
-                            ? `https://landsquire.in/adminAssets/images/Listings/${item.thumbnail}`
-                            : 'https://landsquire.in/adminAssets/images/default-thumbnail.jpg',
+                                ? `https://landsquire.in/adminAssets/images/Listings/${item.thumbnail}`
+                                : 'https://landsquire.in/adminAssets/images/default-thumbnail.jpg',
                     city: item.city,
                 }));
 
@@ -236,7 +236,7 @@ const BuyingWishlists = () => {
                 ) : wishlistData.length === 0 ? (
                     <View style={styles.noDataContainer}>
                         {/* <TouchableOpacity onPress={handleAddProperty}> */}
-                            <Image source={icons.noProperties} style={styles.noDataIcon} />
+                        <Image source={icons.noProperties} style={styles.noDataIcon} />
                         {/* </TouchableOpacity> */}
                         <Text
                             style={[
@@ -254,6 +254,22 @@ const BuyingWishlists = () => {
                         >
                             {t('noWishlistMessage')}
                         </Text>
+                        <TouchableOpacity
+                            style={{
+                                marginTop: 10,
+                                alignSelf: 'center',
+                                backgroundColor: '#234F68',
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                                borderRadius: 8,
+                            }}
+                            onPress={onRefresh}
+                            disabled={loading}
+                        >
+                            <Text style={{ color: '#fff', fontFamily: i18n.language === 'hi' ? 'NotoSerifDevanagari-Medium' : 'Rubik-Medium' }}>
+                                Refresh
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 ) : (
                     <FlatList

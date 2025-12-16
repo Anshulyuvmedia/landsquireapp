@@ -54,52 +54,53 @@ class ApiMasterController extends Controller
         return $user;
     }
 
-    public function loginuser(Request $rq)
-    {
-        try {
-            $user = RegisterUser::where('email', $rq->email)->first();
-            if ($user) {
-                if (Hash::check($rq->password, $user->password)) {
-                    Auth::guard('customer')->login($user);
-                    if (Auth::guard('customer')->check()) {
-                        $user->verification_status = 1;
-                        $user->save();
+    // public function loginuser(Request $rq)
+    // {
+    //     try {
+    //         $user = RegisterUser::where('email', $rq->email)->first();
 
-                        // Generate API token for authentication
-                        $token = $user->createToken('AuthToken')->plainTextToken;
-                        $response = [
-                            'success' => true,
-                            'token' => $token,
-                            'data' => $user,
-                            'message' => 'Login Successfully..!!!!!',
-                        ];
-                    } else {
-                        $response = [
-                            'success' => false,
-                            'message' => 'Invalid..!!!!!',
-                        ];
-                    }
-                } else {
-                    $response = [
-                        'success' => false,
-                        'message' => 'Invalid Password..!!!',
-                    ];
-                }
-            } else {
-                $response = [
-                    'success' => false,
-                    'message' => 'Invalid Email..!!!',
-                ];
-            }
-        } catch (Exception $e) {
-            $response = [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ];
-        }
+    //         if ($user) {
+    //             if (Hash::check($rq->password, $user->password)) {
+    //                 Auth::guard('customer')->login($user);
+    //                 if (Auth::guard('customer')->check()) {
+    //                     $user->verification_status = 1;
+    //                     $user->save();
 
-        return response()->json($response);
-    }
+    //                     // Generate API token for authentication
+    //                     $token = $user->createToken('AuthToken')->plainTextToken;
+    //                     $response = [
+    //                         'success' => true,
+    //                         'token' => $token,
+    //                         'data' => $user,
+    //                         'message' => 'Login Successfully..!!!!!',
+    //                     ];
+    //                 } else {
+    //                     $response = [
+    //                         'success' => false,
+    //                         'message' => 'Invalid..!!!!!',
+    //                     ];
+    //                 }
+    //             } else {
+    //                 $response = [
+    //                     'success' => false,
+    //                     'message' => 'Invalid Password..!!!',
+    //                 ];
+    //             }
+    //         } else {
+    //             $response = [
+    //                 'success' => false,
+    //                 'message' => 'Invalid Email..!!!',
+    //             ];
+    //         }
+    //     } catch (Exception $e) {
+    //         $response = [
+    //             'success' => false,
+    //             'message' => $e->getMessage(),
+    //         ];
+    //     }
+
+    //     return response()->json($response);
+    // }
 
     public function registeruser(Request $rq)
     {
@@ -137,7 +138,7 @@ class ApiMasterController extends Controller
                 'bankname' => $rq->bankname,
                 'company_name' => $rq->company_name,
                 'company_document' => $thumbnailFilename,
-                'password' => Hash::make($rq->password),
+                // 'password' => Hash::make($rq->password),
                 'profile' => 'defaultuser.png',
             ]);
 
@@ -159,7 +160,7 @@ class ApiMasterController extends Controller
 
     public function generateotp(Request $request)
     {
-        // Log::info('Generate OTP Request:', $request->all());
+        Log::info('Generate OTP Request:', $request->all());
 
         $validator = Validator::make($request->all(), [
             'mobilenumber' => 'required|digits:10',
@@ -184,7 +185,7 @@ class ApiMasterController extends Controller
             $this->sendOtp($user->mobilenumber, $otp);
             $user->update(['otp' => $otp]);
 
-            // Log::info('OTP generated for user ID:', ['id' => $user->id, 'otp' => $otp]);
+            Log::info('OTP generated for user ID:', ['id' => $user->id, 'otp' => $otp]);
             return response()->json(
                 [
                     'success' => true,
@@ -207,10 +208,7 @@ class ApiMasterController extends Controller
     public function sendOtp($mobilenumber, $otpnumber)
     {
         $name = 'Land Squire';
-        //     Log::info('Sending OTP', [
-        //     'mobile_number' => $mobilenumber,
-        //     'otp' => $otpnumber
-        // ]);
+
         try {
             $response = Http::withToken(env('SMS_KEY'))->post('https://sms.jaipursmshub.in/api_v2/message/send', [
                 'sender_id' => 'PTPSMS',

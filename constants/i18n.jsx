@@ -25,7 +25,7 @@ const resources = {
             // Home screen translations
             welcome: 'Hey, ',
             startExploring: 'Let\'s Start Exploring',
-            featuredEstate: 'Featured Estate',
+            featuredEstate: 'Featured Properties',
             seeAll: 'See All',
             topLocations: 'Top Locations',
             ourRecommendation: 'Our Recommendation',
@@ -108,10 +108,10 @@ const resources = {
             all: 'All',
             // Explore translations
             searchResults: 'Search results',
-            foundEstates: 'Found {count} estates',
+            foundEstates: 'Found {count} Properties',
             notFound: 'not found',
             noResultsTitle: 'Search not found',
-            noResultsMessage1: 'Sorry, we can\'t find the real estate you\'re looking for.',
+            noResultsMessage1: 'Sorry, we can\'t find the real properties you\'re looking for.',
             noResultsMessage2: 'Maybe a little spelling mistake?',
             clearAll: 'Clear All',
             any: 'Any',

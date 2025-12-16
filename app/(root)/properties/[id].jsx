@@ -300,7 +300,7 @@ const PropertyDetails = () => {
                     setMasterPlanDocs([]);
                 }
                 const brokerDataFromApi = response.data.brokerdata && response.data.brokerdata.length > 0 ? response.data.brokerdata[0] : null;
-                // console.log('brokerDataFromApi...', brokerDataFromApi);
+                console.log('brokerDataFromApi...', brokerDataFromApi);
                 setBrokerData(brokerDataFromApi);
                 if (!brokerDataFromApi) {
                     console.warn("No broker data available for this property.");
@@ -541,7 +541,7 @@ const PropertyDetails = () => {
                 />
                 <MasterPlanSection masterPlanDocs={masterPlanDocs} />
                 {/* <PriceHistorySection priceHistoryData={priceHistoryData} /> */}
-                <View className="px-4 flex-row justify-center">
+                <View className="px-4 flex-row justify-center mt-3">
                     <TouchableOpacity
                         onPress={() => router.push({
                             pathname: "/loanenquiry",
