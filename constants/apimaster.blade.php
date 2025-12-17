@@ -525,7 +525,8 @@ class ApiMasterController extends Controller
         }
 
         if ($propertyFor) {
-            $listings->where('propertyfor', $propertyFor);
+            $normalized = ucfirst(strtolower($propertyFor));
+            $listings->where('propertyfor', $normalized);
         }
 
         if ($minprice && $maxprice) {

@@ -19,20 +19,20 @@ export default function Index() {
                 if (token && userData) {
                     const user = JSON.parse(userData);
                     const userType = user?.user_type?.toLowerCase();
-                    console.log('userType', userType);
+                    // console.log('userType', userType);
 
                     if (userType === "user") {
                         router.push("/mapview");
-                        console.log('1');
+                        // console.log('1');
                     } else if (userType === "broker" || userType === "bankagent") {
-                        console.log('2');
+                        // console.log('2');
                         router.push("/(root)/(tabs)/home");
                     } else {
-                        console.log('3');
+                        // console.log('3');
                         router.push("/(auth)/signin");
                     }
                 } else {
-                    console.log('4');
+                    // console.log('4');
                     router.push("/(auth)/signin");
                 }
             } catch (err) {

@@ -299,7 +299,7 @@ const Signin = () => {
                 ref={otpSheetRef}
                 closeOnDragDown={true}
                 closeOnPressMask={true}
-                height={200}
+                height={350}
                 customStyles={{
                   container: styles.bottomSheetContainer,
                 }}
