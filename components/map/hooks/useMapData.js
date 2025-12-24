@@ -64,7 +64,7 @@ export const useMapData = () => {
     const toggleMapType = useCallback(() => {
         setMapType((prev) => {
             if (prev === 'hybrid') return 'standard';
-            if (prev === 'standard') return 'satellite';
+            if (prev === 'standard') return 'hybrid';
             return 'hybrid';
         });
     }, []);

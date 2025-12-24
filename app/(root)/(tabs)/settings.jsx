@@ -166,15 +166,18 @@ const Dashboard = () => {
   const MenuItem = ({ icon, title, onPress, textColor = '#4B5563' }) => (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-row items-center py-4 px-3 bg-white rounded-lg mb-1.5 shadow-sm"
+      className="flex-row items-center justify-Between  py-4 px-3 bg-white rounded-lg mb-1.5 shadow-sm"
       activeOpacity={0.7}
     >
-      <MaterialIcons name={icon} size={moderateScale(18, 0.3)} color={textColor} />
-      <Text
-        className={`ml-2.5 text-lg ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} ${textColor === '#000' ? 'text-danger' : textColor === '#234F68' ? 'text-primary-300' : 'text-black-300'}`}
-      >
-        {title}
-      </Text>
+      <View className="flex-row flex-1">
+        <MaterialIcons name={icon} size={moderateScale(18, 0.3)} color={textColor} />
+        <Text
+          className={`ml-2.5 text-lg ${i18n.language === 'hi' ? 'font-noto-serif-devanagari-medium' : 'font-rubik-medium'} ${textColor === '#000' ? 'text-danger' : textColor === '#234F68' ? 'text-primary-300' : 'text-black-300'}`}
+        >
+          {title}
+        </Text>
+      </View>
+      <MaterialIcons name="chevron-right" size={moderateScale(25, 0.3)} color={textColor}  />
     </TouchableOpacity>
   );
 

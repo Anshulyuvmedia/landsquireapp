@@ -5,6 +5,24 @@ import { View, Text } from 'react-native';
 import { parseCoordinates, parseProjectCoordinates, calculateCentroid, formatINR } from './utils/mapUtils';
 
 const MarkersRenderer = ({ items, onPress }) => {
+    const [tracks, setTracks] = React.useState(true);
+
+    const PriceMarker = React.memo(({ price }) => {
+
+        React.useEffect(() => {
+            // Disable after first paint
+            setTimeout(() => setTracks(false), 0);
+        }, []);
+
+        return (
+            <View style={styles.markerContainer}>
+                <Text style={styles.markerText}>{price}</Text>
+                <View style={styles.pointer} />
+            </View>
+        );
+    });
+    
+
     return (
         <>
             {items.map((item) => {
@@ -16,11 +34,9 @@ const MarkersRenderer = ({ items, onPress }) => {
                             key={`property-${item.id}`}
                             coordinate={coords}
                             onPress={() => onPress(item)}
-                            tracksViewChanges={false}
+                            tracksViewChanges={tracks}
                         >
-                            <View style={styles.markerContainer}>
-                                <Text style={styles.markerText}>{price}</Text>
-                            </View>
+                            <PriceMarker price={price} />
                         </Marker>
                     );
                 } else {
@@ -47,6 +63,9 @@ const MarkersRenderer = ({ items, onPress }) => {
         </>
     );
 };
+
+
+
 
 const styles = {
     markerContainer: {

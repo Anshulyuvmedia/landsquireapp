@@ -259,7 +259,7 @@ const MapCard = ({ item, onPress, onView, map }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="w-100 h-[130px] rounded-[30px] bg-[#f5f4f8] flex-row overflow-hidden"
+      className="w-100 h-[130px] rounded-[30px] bg-[#f5f4f8] flex-row overflow-hidden pe-3"
     >
       {/* Image Section */}
       <View className="w-[150px] h-full relative p-2">
@@ -296,7 +296,7 @@ const MapCard = ({ item, onPress, onView, map }) => {
         </View>
 
         {/* Price */}
-        <View className="w-[100%] flex-row items-center justify-between mt-2">
+        <View className="w-[100] flex-row items-center justify-between mt-2">
           <Text className="text-base font-rubik text-black-300">
             {price && formatINR(price)}
           </Text>

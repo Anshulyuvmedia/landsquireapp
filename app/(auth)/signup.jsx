@@ -27,6 +27,18 @@ const SignUp = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [sessionToken, setSessionToken] = useState('');
   const [isLoading, setIsLoading] = useState(false); // New loading state
+
+  // Validation error states
+  const [errors, setErrors] = useState({
+    username: false,
+    mobile: false,
+    city: false,
+    email: false,
+    companyName: false,
+    companyDocument: false,
+    bankName: false,
+  });
+
   const rbSheetRef = useRef(null);
   const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.GOOGLE_MAPS_API_KEY || '';
   const navigation = useNavigation();
@@ -35,8 +47,36 @@ const SignUp = () => {
     setSessionToken(Math.random().toString(36).substring(2) + Date.now().toString(36));
   }, []);
 
+  // Reset error when user starts typing
+  const clearError = (field) => {
+    setErrors(prev => ({ ...prev, [field]: false }));
+  };
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email.trim());
+  };
+
+  const validateFields = () => {
+    let newErrors = {
+      username: !username.trim(),
+      mobile: !mobile || mobile.length !== 10,
+      city: !city.trim(),
+      email: !email.trim() || !validateEmail(email),
+      companyName: userType === 'broker' && !companyName.trim(),
+      companyDocument: userType === 'broker' && !companyDocument,
+      bankName: userType === 'bankagent' && !bankName.trim(),
+    };
+
+    setErrors(newErrors);
+
+    // Return true only if no errors
+    return !Object.values(newErrors).some(Boolean);
+  };
+
   const handleSearch = (text) => {
     setSearchTerm(text);
+    clearError('city');
     if (text.length > 2) {
       fetchSuggestions(text);
     } else {
@@ -94,6 +134,7 @@ const SignUp = () => {
           setState(selectedState);
           setSearchTerm(selectedCity);
           setSuggestions([]);
+          clearError('city');
         } else {
           setMessage({ type: 'error', title: 'Error', text: 'Could not extract city and state from selection.' });
         }
@@ -104,12 +145,6 @@ const SignUp = () => {
       setMessage({ type: 'error', title: 'Error', text: 'An unexpected error occurred during selection.' });
     }
   };
-
-  useEffect(() => {
-    if (message.type) {
-      rbSheetRef.current?.open();
-    }
-  }, [message]);
 
   const pickDocument = async () => {
     try {
@@ -129,80 +164,96 @@ const SignUp = () => {
       }
 
       setCompanyDocument(selectedFile);
+      clearError('companyDocument');
     } catch (error) {
-      console.error('Document Picker Error:', error);
-      setMessage({ type: 'error', title: 'Error', text: 'An error occurred while selecting a document.' });
+      // console.error('Document Picker Error:', error);
+      setMessage({ type: 'error', title: 'Error', text: 'Error selecting document.' });
     }
   };
 
   const handleRegister = async () => {
-    if (
-      email &&
-      // password &&
-      username &&
-      mobile &&
-      city &&
-      state &&
-      (userType === 'user' || (userType === 'broker' && companyName && companyDocument) || (userType === 'bankagent' && bankName))
-    ) {
-      setIsLoading(true); // Start loading
-      const formData = new FormData();
-      formData.append('user_type', userType);
-      formData.append('name', username);
-      formData.append('mobile', mobile);
-      formData.append('city', city);
-      formData.append('state', state);
-      formData.append('email', email);
-      // formData.append('password', password);
+    if (!validateFields()) {
+      setMessage({
+        type: 'error',
+        title: 'Validation Error',
+        text: 'Please fill all required fields correctly.',
+      });
+      return;
+    }
 
-      if (userType === 'broker' && companyName && companyDocument) {
-        formData.append('company_name', companyName);
-        formData.append('company_document', {
-          uri: companyDocument.uri,
-          name: companyDocument.name,
-          type: companyDocument.mimeType || 'application/octet-stream',
-        });
-      } else if (userType === 'bankagent' && bankName) {
-        formData.append('bankname', bankName);
+    setIsLoading(true); // Start loading
+    const formData = new FormData();
+    formData.append('user_type', userType);
+    formData.append('name', username);
+    formData.append('mobile', mobile);
+    formData.append('city', city);
+    formData.append('state', state);
+    formData.append('email', email);
+    // formData.append('password', password);
+
+    if (userType === 'broker') {
+      formData.append('company_name', companyName.trim());
+      formData.append('company_document', {
+        uri: companyDocument.uri,
+        name: companyDocument.name,
+        type: companyDocument.mimeType || 'application/octet-stream',
+      });
+    } else if (userType === 'bankagent') {
+      formData.append('bankname', bankName.trim());
+    }
+
+    try {
+      const response = await fetch('https://landsquire.in/api/register-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'multipart/form-data' },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', title: 'Success', text: 'User registered successfully!' });
+        // Reset form
+        setUsername('');
+        setMobile('');
+        setCity('');
+        setState('');
+        setEmail('');
+        // setPassword('');
+        setCompanyName('');
+        setBankName('');
+        setCompanyDocument(null);
+        setSearchTerm('');
+        setErrors({});
+        setTimeout(() => {
+          navigation.navigate('signin');
+        }, 2000);
+      } else {
+        setMessage({ type: 'error', title: 'Error', text: result.message || 'Registration failed' });
       }
-
-      try {
-        const response = await fetch('https://landsquire.in/api/register-user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'multipart/form-data' },
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          setMessage({ type: 'success', title: 'Success', text: 'User registered successfully!' });
-          setUsername('');
-          setMobile('');
-          setCity('');
-          setState('');
-          setEmail('');
-          // setPassword('');
-          setCompanyName('');
-          setBankName('');
-          setCompanyDocument(null);
-          setSearchTerm('');
-          setTimeout(() => {
-            navigation.navigate('signin');
-          }, 2000);
-        } else {
-          setMessage({ type: 'error', title: 'Error', text: result.message || 'Registration failed' });
-        }
-      } catch (error) {
-        console.error('Registration Error:', error);
-        setMessage({ type: 'error', title: 'Error', text: 'An unexpected error occurred' });
-      } finally {
-        setIsLoading(false); // Stop loading
-      }
-    } else {
-      setMessage({ type: 'error', title: 'Error', text: 'Please fill in all required fields' });
+    } catch (error) {
+      console.error('Registration Error:', error);
+      setMessage({ type: 'error', title: 'Error', text: 'Network error. Please try again.' });
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
+
+  useEffect(() => {
+    if (message.type) {
+      rbSheetRef.current?.open();
+    }
+  }, [message]);
+
+  // Helper to get icon color
+  const getIconColor = (field) => (errors[field] ? '#FF4C4C' : '#1F4C6B');
+
+  // Helper to get input container style
+  const getInputStyle = (field) => [
+    styles.inputContainer,
+    errors[field] ? styles.inputError : null,
+  ];
+
 
   return (
     <KeyboardAvoidingView
@@ -221,17 +272,17 @@ const SignUp = () => {
           </View>
 
           <View style={styles.toggleContainer}>
-            <TouchableOpacity onPress={() => setUserType('user')}>
+            <TouchableOpacity onPress={() => { setUserType('user'); setErrors({}); }}>
               <View style={[styles.toggleButton, userType === 'user' ? styles.toggleButtonActive : {}]}>
                 <Text style={[styles.toggleText, userType === 'user' ? styles.toggleTextActive : {}]}>User</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setUserType('broker')}>
+            <TouchableOpacity onPress={() => { setUserType('broker'); setErrors({}); }}>
               <View style={[styles.toggleButton, userType === 'broker' ? styles.toggleButtonActive : {}]}>
                 <Text style={[styles.toggleText, userType === 'broker' ? styles.toggleTextActive : {}]}>Broker</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setUserType('bankagent')}>
+            <TouchableOpacity onPress={() => { setUserType('bankagent'); setErrors({}); }}>
               <View style={[styles.toggleButton, userType === 'bankagent' ? styles.toggleButtonActive : {}]}>
                 <Text style={[styles.toggleText, userType === 'bankagent' ? styles.toggleTextActive : {}]}>Bank Agent</Text>
               </View>
@@ -246,20 +297,20 @@ const SignUp = () => {
             <View style={styles.formContainer}>
               {userType === 'broker' && (
                 <>
-                  <View style={styles.inputContainer}>
-                    <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                  <View style={getInputStyle('companyName')}>
+                    <Ionicons name="business-outline" size={24} color={getIconColor('companyName')} style={styles.inputIcon} />
                     <TextInput
                       style={[styles.input, { paddingLeft: 10 }]}
-                      placeholderTextColor="#555"
-                      placeholder="Company Name"
+                      placeholderTextColor="#999"
+                      placeholder="Company Name *"
                       value={companyName}
-                      onChangeText={setCompanyName}
+                      onChangeText={(text) => { setCompanyName(text); clearError('companyName'); }}
                     />
                   </View>
-                  <View style={styles.inputContainer}>
-                    <Ionicons name="document-text-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
-                    <Text style={[styles.input, { paddingTop: 13, color: '#555' }]}>
-                      {companyDocument ? companyDocument.name : 'Company Document'}
+                  <View style={getInputStyle('companyDocument')}>
+                    <Ionicons name="document-text-outline" size={24} color={getIconColor('companyDocument')} style={styles.inputIcon} />
+                    <Text style={[styles.input, { paddingTop: 13, color: companyDocument ? '#000' : '#999' }]}>
+                      {companyDocument ? companyDocument.name : 'Company Document *'}
                     </Text>
                     <TouchableOpacity onPress={pickDocument} style={styles.uploadButton}>
                       <Text style={styles.uploadText}>Upload</Text>
@@ -269,48 +320,49 @@ const SignUp = () => {
               )}
 
               {userType === 'bankagent' && (
-                <View style={styles.inputContainer}>
-                  <Ionicons name="business-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+                <View style={getInputStyle('bankName')}>
+                  <Ionicons name="business-outline" size={24} color={getIconColor('bankName')} style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, { paddingLeft: 10 }]}
-                    placeholderTextColor="#555"
-                    placeholder="Bank Name"
+                    placeholderTextColor="#999"
+                    placeholder="Bank Name *"
                     value={bankName}
-                    onChangeText={setBankName}
+                    onChangeText={(text) => { setBankName(text); clearError('bankName'); }}
                   />
                 </View>
               )}
 
-              <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={24} color="#1F4C6B" style={styles.inputIcon} />
+              <View style={getInputStyle('username')}>
+                <Ionicons name="person-outline" size={24} color={getIconColor('username')} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholderTextColor="#555"
-                  placeholder="Your Full name"
+                  placeholderTextColor="#999"
+                  placeholder="Your Full Name *"
                   value={username}
-                  onChangeText={setUsername}
+                  onChangeText={(text) => { setUsername(text); clearError('username'); }}
                 />
               </View>
 
-              <View style={styles.inputContainer}>
-                <Octicons name="device-mobile" size={20} color="#1F4C6B" style={styles.inputIcon} />
+              <View style={getInputStyle('mobile')}>
+                <Octicons name="device-mobile" size={20} color={getIconColor('mobile')} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholderTextColor="#555"
-                  placeholder="Mobile No."
+                  placeholderTextColor="#999"
+                  placeholder="Mobile No. *"
                   keyboardType="number-pad"
+                  maxLength={10}
                   value={mobile}
-                  onChangeText={setMobile}
+                  onChangeText={(text) => { setMobile(text.replace(/[^0-9]/g, '')); clearError('mobile'); }}
                 />
               </View>
 
               <View style={styles.rowContainer}>
-                <View style={[styles.inputContainer, styles.inputContainerHalf]}>
-                  <Ionicons name="location-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
+                <View style={[getInputStyle('city'), styles.inputContainerHalf]}>
+                  <Ionicons name="location-outline" size={20} color={getIconColor('city')} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholderTextColor="#555"
-                    placeholder="Search City"
+                    placeholderTextColor="#999"
+                    placeholder="Search City *"
                     value={searchTerm}
                     onChangeText={handleSearch}
                   />
@@ -319,7 +371,7 @@ const SignUp = () => {
                   <Ionicons name="map-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholderTextColor="#555"
+                    placeholderTextColor="#999"
                     placeholder="State"
                     value={state}
                     editable={false}
@@ -340,16 +392,16 @@ const SignUp = () => {
                 />
               )}
 
-              <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
+              <View style={getInputStyle('email')}>
+                <Ionicons name="mail-outline" size={20} color={getIconColor('email')} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholderTextColor="#555"
-                  placeholder="Email"
+                  placeholderTextColor="#999"
+                  placeholder="Email *"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => { setEmail(text); clearError('email'); }}
                 />
               </View>
 
@@ -357,7 +409,7 @@ const SignUp = () => {
                 <Ionicons name="lock-closed-outline" size={20} color="#1F4C6B" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholderTextColor="#555"
+                  placeholderTextColor="#999"
                   placeholder="Create Password"
                   secureTextEntry={!showPassword}
                   value={password}
@@ -437,26 +489,31 @@ const SignUp = () => {
 export default SignUp;
 
 const styles = StyleSheet.create({
+  inputError: {
+    borderWidth: 1,
+    borderColor: '#FF4C4C',
+    backgroundColor: '#fff5f5',
+  },
   container: { flex: 1, backgroundColor: '#fafafa', alignItems: 'center', justifyContent: 'center' },
   scrollContainer: { flexGrow: 1, alignItems: 'center', paddingBottom: verticalScale(20) },
   headerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: verticalScale(10) },
   applogo: { width: scale(50), height: scale(50), borderRadius: moderateScale(10), marginRight: scale(10) },
   formContainer: { paddingInline: 20, width: '100%', alignItems: 'center' },
   title: { fontSize: scale(20), fontFamily: 'Rubik-Bold', color: '#1F4C6B', textAlign: 'left' },
-  subtitle: { fontSize: scale(14), fontFamily: 'Rubik-Regular', color: '#555', textAlign: 'left', marginVertical: verticalScale(5) },
+  subtitle: { fontSize: scale(14), fontFamily: 'Rubik-Regular', color: '#999', textAlign: 'left', marginVertical: verticalScale(5) },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginVertical: verticalScale(7) },
   toggleButton: { paddingVertical: verticalScale(4), paddingHorizontal: scale(15), borderRadius: moderateScale(20), borderWidth: 1, borderColor: '#ccc', marginHorizontal: scale(5) },
   toggleButtonActive: { backgroundColor: '#1F4C6B' },
-  toggleText: { fontSize: scale(14), fontFamily: 'Rubik-Medium', color: '#555' },
+  toggleText: { fontSize: scale(14), fontFamily: 'Rubik-Medium', color: '#999' },
   toggleTextActive: { color: 'white' },
   rowContainer: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  inputContainer: { flexDirection: 'row', padding: moderateScale(10), alignItems: 'center', backgroundColor: '#f3f4f6', borderRadius: moderateScale(10), marginBottom: verticalScale(10), width: '100%' },
+  inputContainer: { flexDirection: 'row', padding: moderateScale(5), alignItems: 'center', backgroundColor: '#f3f4f6', borderRadius: moderateScale(10), marginBottom: verticalScale(10), width: '100%' },
   inputContainerHalf: { width: '48%' },
   inputIcon: { marginLeft: scale(10) },
   input: { flex: 1, height: verticalScale(45), paddingHorizontal: scale(10), fontFamily: 'Rubik-Regular' },
   suggestionsList: { backgroundColor: '#fff', borderRadius: moderateScale(10), maxHeight: verticalScale(200), width: '100%', marginBottom: verticalScale(10) },
   suggestionItem: { padding: moderateScale(10), borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  suggestionText: { fontFamily: 'Rubik-Regular', color: '#555', fontSize: scale(14) },
+  suggestionText: { fontFamily: 'Rubik-Regular', color: '#999', fontSize: scale(14) },
   uploadButton: { padding: moderateScale(10) },
   uploadText: { color: '#1e40af', fontFamily: 'Rubik-Medium' },
   optionsContainer: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: verticalScale(10) },
@@ -469,7 +526,7 @@ const styles = StyleSheet.create({
   loginHighlight: { color: '#234F68', fontFamily: 'Rubik-Bold' },
   sheetContainer: { alignItems: 'center', justifyContent: 'center', flex: 1 },
   sheetTitle: { fontSize: scale(18), fontFamily: 'Rubik-Bold', color: '#1F4C6B', marginBottom: verticalScale(10) },
-  sheetText: { fontSize: scale(14), fontFamily: 'Rubik-Regular', color: '#555', textAlign: 'center', marginBottom: verticalScale(20) },
+  sheetText: { fontSize: scale(14), fontFamily: 'Rubik-Regular', color: '#999', textAlign: 'center', marginBottom: verticalScale(20) },
   sheetButton: { backgroundColor: '#1F4C6B', borderRadius: moderateScale(10), paddingVertical: verticalScale(10), paddingHorizontal: scale(20), width: scale(200), alignItems: 'center' },
   sheetButtonText: { fontSize: scale(16), fontFamily: 'Rubik-Medium', color: 'white' },
 });

@@ -1,15 +1,6 @@
 // components/map/FilterBottomSheet.jsx
 import React from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    ScrollView,
-    StyleSheet,
-    Dimensions,
-    ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -67,7 +58,7 @@ const FilterBottomSheet = ({
             ref={sheetRef}
             closeOnDragDown
             closeOnPressMask
-            height={Dimensions.get('window').height * 0.85}
+            height={Dimensions.get('window').height * 0.65}
             customStyles={{
                 wrapper: { backgroundColor: 'rgba(0,0,0,0.5)' },
                 container: {
@@ -102,7 +93,7 @@ const FilterBottomSheet = ({
 
                 {showSuggestions && citySuggestions.length > 0 && (
                     <View style={styles.suggestionsContainer}>
-                        <Text style={styles.suggestionsTitle}>Cities</Text>
+                        <Text style={styles.suggestionsTitle}>Select Your City</Text>
                         {citySuggestions.map((suggestion, index) => (
                             <TouchableOpacity
                                 key={index}
@@ -260,11 +251,21 @@ const FilterBottomSheet = ({
                 {/* Map Type */}
                 <Text style={styles.label}>Map Type</Text>
                 <View style={styles.propertyForContainer}>
-                    <TouchableOpacity onPress={toggleMapType} style={styles.mapTypeFilterButton}>
-                        <Text style={styles.mapTypeFilterText}>
-                            {mapType.charAt(0).toUpperCase() + mapType.slice(1)}
-                        </Text>
-                    </TouchableOpacity>
+                    {['Hybrid', 'Standard'].map((type) => {
+                        const typeValue = type.toLowerCase();
+                        const isSelected = mapType === typeValue;
+                        return (
+                            <TouchableOpacity
+                                key={type}
+                                onPress={() => toggleMapType(typeValue)}
+                                style={[styles.propertyForButton, isSelected && styles.selectedPropertyForButton]}
+                            >
+                                <Text style={[styles.propertyForText, isSelected && styles.selectedPropertyForText]}>
+                                    {type}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             </ScrollView>
 
@@ -287,160 +288,177 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 24,
     },
     headerText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#1F2937',
     },
     resetText: {
-        fontSize: 16,
+        fontSize: 14,
+        fontWeight: '600',
         color: '#234F68',
     },
     label: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '600',
-        color: '#333',
-        marginVertical: 10,
+        color: '#1F2937',
+        marginVertical: 12,
+        marginTop: 16,
     },
     pickerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 8,
+        backgroundColor: '#F9FAFB',
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#ccc',
-        paddingHorizontal: 10,
-        marginBottom: 20,
+        borderColor: '#E5E7EB',
+        paddingHorizontal: 12,
+        marginBottom: 16,
     },
     icon: {
         marginRight: 10,
     },
     searchInput: {
         flex: 1,
-        fontSize: 16,
-        color: '#333',
+        fontSize: 15,
+        color: '#1F2937',
         paddingVertical: 12,
     },
     suggestionsContainer: {
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F3F4F6',
         borderRadius: 10,
-        padding: 15,
-        marginBottom: 20,
+        padding: 12,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
     },
     suggestionsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#1F2937',
         marginBottom: 10,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     suggestionItem: {
         paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        paddingHorizontal: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginBottom: 6,
+        borderRadius: 8,
+        backgroundColor: '#FFF',
     },
     suggestionText: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 14,
+        color: '#374151',
     },
     propertyForContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 20,
+        marginBottom: 16,
+        gap: 10,
     },
     propertyForButton: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: 11,
         borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 1.5,
+        borderColor: '#E5E7EB',
         alignItems: 'center',
-        marginHorizontal: 5,
+        backgroundColor: '#FFF',
     },
     selectedPropertyForButton: {
         backgroundColor: '#234F68',
         borderColor: '#234F68',
     },
     propertyForText: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#6B7280',
     },
     selectedPropertyForText: {
-        color: '#fff',
+        color: '#FFF',
     },
     mapTypeFilterButton: {
         flex: 1,
         backgroundColor: '#234F68',
-        paddingVertical: 14,
+        paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
     },
     mapTypeFilterText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#FFF',
+        fontSize: 14,
         fontWeight: '600',
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 16,
+        gap: 10,
     },
     input: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#F9FAFB',
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: '#E5E7EB',
         paddingHorizontal: 12,
-        paddingVertical: 12,
-        fontSize: 16,
-        marginHorizontal: 5,
+        paddingVertical: 11,
+        fontSize: 14,
+        color: '#1F2937',
     },
     inputSeparator: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 13,
+        color: '#9CA3AF',
+        fontWeight: '500',
     },
     propertyTypeContainer: {
-        paddingVertical: 10,
+        paddingVertical: 8,
+        gap: 8,
     },
     propertyTypeButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#ccc',
-        marginRight: 10,
+        borderColor: '#E5E7EB',
+        backgroundColor: '#FFF',
     },
     selectedPropertyTypeButton: {
         backgroundColor: '#234F68',
         borderColor: '#234F68',
     },
     propertyTypeText: {
-        fontSize: 14,
-        color: '#333',
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#6B7280',
     },
     selectedPropertyTypeText: {
-        color: '#fff',
+        color: '#FFF',
     },
     noDataText: {
-        fontSize: 14,
-        color: '#888',
+        fontSize: 13,
+        color: '#9CA3AF',
         paddingVertical: 10,
     },
     submitContainer: {
-        marginTop: 20,
+        marginTop: 24,
         marginBottom: 30,
     },
     submitButton: {
         backgroundColor: '#234F68',
-        borderRadius: 30,
-        paddingVertical: 16,
+        borderRadius: 10,
+        paddingVertical: 14,
         alignItems: 'center',
     },
     submitText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '700',
     },
 });
 

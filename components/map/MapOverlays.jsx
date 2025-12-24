@@ -14,10 +14,10 @@ const MapOverlays = ({
     return (
         <>
             {/* Location Label - Top Left */}
-            <View style={styles.locationContainer}>
+            <TouchableOpacity onPress={onFilterOpen} style={styles.locationContainer}>
                 <Ionicons name="location-outline" size={16} color="#fff" />
                 <Text style={styles.locationText}>{currentLocationName}</Text>
-            </View>
+            </TouchableOpacity>
 
             {/* Top Right Buttons */}
             <View style={styles.buttonContainer}>
